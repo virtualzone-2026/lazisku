@@ -24,6 +24,18 @@ export default {
       title: 'Nominal Donasi',
       type: 'number',
     },
+    // 🚀 1. TAMBAHAN FIELD KODE UNIK (3 DIGIT EKOR)
+    {
+      name: 'uniqueCode',
+      title: 'Kode Unik',
+      type: 'number',
+    },
+    // 🚀 2. TAMBAHAN FIELD TOTAL YANG WAJIB DI-TRANSFER USER
+    {
+      name: 'totalAmount',
+      title: 'Total Pembayaran (+Kode Unik)',
+      type: 'number',
+    },
     {
       name: 'status',
       title: 'Status Pembayaran',

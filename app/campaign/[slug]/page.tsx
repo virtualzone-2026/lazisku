@@ -11,14 +11,12 @@ export default function CampaignDetailPage() {
   const [loading, setLoading] = useState(true);
   const [amount, setAmount] = useState('');
   const [donorName, setDonorName] = useState('');
-  const [donorPhone, setDonorPhone] = useState(''); // 🚀 STATE BARU UNTUK WHATSAPP
+  const [donorPhone, setDonorPhone] = useState(''); 
   const [submitting, setSubmitting] = useState(false);
   
-  // State untuk mengatur perpindahan tab menu secara dinamis
   const [activeTab, setActiveTab] = useState<'cerita' | 'donatur'>('cerita');
 
   useEffect(() => {
-    // 🚀 FIXED DYNAMIC FETCH: Ditambahkan parameter timestamp dan headers anti-cache agar data detail selalu fresh!
     fetch('/api/programs?v=' + Date.now(), {
       cache: 'no-store',
       headers: {
@@ -40,7 +38,6 @@ export default function CampaignDetailPage() {
       });
   }, [slug]);
 
-  // Fungsi memformat input angka mentah menjadi Rp format ribuan titik secara live
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/[^0-9]/g, '');
     if (!rawValue) {
@@ -52,7 +49,6 @@ export default function CampaignDetailPage() {
   };
 
   const handleDonate = async () => {
-    // Kembalikan nilai format titik menjadi angka murni untuk di-submit ke backend
     const cleanAmount = amount.replace(/\./g, '');
 
     if (!cleanAmount || Number(cleanAmount) < 10000) {
@@ -70,13 +66,15 @@ export default function CampaignDetailPage() {
           slug: program.slug,
           amount: cleanAmount,
           donorName: donorName.trim() || 'Hamba Allah',
-          donorPhone: donorPhone.trim(), // 🚀 DIKIRIMKAN LANGSUNG KE API CHECKOUT FRONTEND
+          donorPhone: donorPhone.trim(), 
         }),
       });
 
       const json = await res.json();
-      if (json.success && json.paymentUrl) {
-        window.location.href = json.paymentUrl;
+      
+      // 🚀 FIXED LOGIC: Dialihkan secara valid ke halaman QRIS internal kode unik kita
+      if (json.success && json.orderId) {
+        window.location.href = `/pay-qris/${json.orderId}`;
       } else {
         alert(json.error || 'Gagal memproses pembayaran.');
       }
@@ -92,20 +90,14 @@ export default function CampaignDetailPage() {
 
   const rawTarget = program.targetAmount || 50000000;
   const percentage = Math.min(Math.round((program.collectedRaw / rawTarget) * 100), 100);
-  
-  // Ambil array donors dari file json jika ada, atau buat array kosong sebagai fallback
   const donorList = program.donors || [];
 
   return (
-    // 🚀 FIXED: Menyelaraskan md:px-12 menjadi md:px-16 agar simetris lurus dengan layout utama lainnya
     <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-16">
       <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* ===================================================================
-            KOLOM KIRI: DETAIL CERITA & DAFTAR DONATUR
-            =================================================================== */}
+        {/* KOLOM KIRI: DETAIL CERITA & DAFTAR DONATUR */}
         <div className="lg:col-span-2 space-y-5 flex flex-col">
-          
           <div>
             <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider">
               {program.category || 'Kebaikan'}
@@ -115,12 +107,10 @@ export default function CampaignDetailPage() {
             </h1>
           </div>
           
-          {/* Gambar Banner Utama */}
           <div className="rounded-2xl overflow-hidden bg-gray-100 aspect-[16/9] w-full shadow-sm border border-gray-200/60">
             <img src={program.image} alt={program.title} className="w-full h-full object-cover" />
           </div>
 
-          {/* NAVIGASI TABS */}
           <div className="flex border-b border-gray-200 text-xs font-bold text-gray-400 space-x-6 pt-2">
             <button 
               onClick={() => setActiveTab('cerita')}
@@ -144,7 +134,6 @@ export default function CampaignDetailPage() {
             </button>
           </div>
 
-          {/* AREA KONTEN MENGIKUTI TAB */}
           <div className="bg-transparent py-2 w-full">
             {activeTab === 'cerita' ? (
               <div className="text-gray-700 text-base leading-relaxed space-y-4 font-normal tracking-wide dynamic-portable-text">
@@ -159,7 +148,6 @@ export default function CampaignDetailPage() {
                 )}
               </div>
             ) : (
-              // Tampilan Halaman Daftar Donatur Dinamis
               <div className="space-y-3 py-2">
                 {donorList.length > 0 ? (
                   donorList.map((donor: any, idx: number) => (
@@ -193,15 +181,12 @@ export default function CampaignDetailPage() {
           </div>
         </div>
 
-        {/* ===================================================================
-            KOLOM KANAN: FORMULIR DONASI (STICKY BOX)
-            =================================================================== */}
+        {/* KOLOM KANAN: FORMULIR DONASI (STICKY BOX) */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 h-fit lg:sticky lg:top-24">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Dana Terkumpul</p>
           <p className="text-3xl font-black text-emerald-600 mt-1">{program.collected || `Rp ${Number(program.collectedRaw).toLocaleString('id-ID')}`}</p>
           <p className="text-[11px] text-gray-400 mt-0.5 font-medium">Target Rp {rawTarget.toLocaleString('id-ID')}</p>
 
-          {/* Progress Bar */}
           <div className="w-full bg-gray-100 h-2 rounded-full mt-4 overflow-hidden">
             <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
           </div>
@@ -210,7 +195,6 @@ export default function CampaignDetailPage() {
             <span>{donorList.length} DONATUR</span>
           </div>
 
-          {/* Input Form Box */}
           <div className="mt-6 pt-6 border-t border-gray-100 space-y-4">
             <div>
               <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nama Donatur</label>
@@ -223,7 +207,6 @@ export default function CampaignDetailPage() {
               />
             </div>
 
-            {/* 🚀 FORM INPUT BARU: NOMOR WHATSAPP */}
             <div>
               <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nomor WhatsApp</label>
               <input
