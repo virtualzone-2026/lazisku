@@ -47,7 +47,8 @@ export default function PayQrisPage() {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '50px', fontFamily: 'sans-serif', color: '#6b7280' }}>
-        <p style={{ fontSize: '14px', fontWith: 600 }}>Menyiapkan halaman pembayaran...</p>
+        {/* 🚀 FIXED: Typo 'fontWith' diubah menjadi properti valid 'fontWeight' */}
+        <p style={{ fontSize: '14px', fontWeight: 600 }}>Menyiapkan halaman pembayaran...</p>
       </div>
     );
   }
