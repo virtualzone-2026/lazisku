@@ -15,8 +15,9 @@ const emeraldTheme = buildLegacyTheme({
 });
 
 export default defineConfig({
-  name: 'default',
-  title: 'Indonesia Mengaji',
+  // 🚀 MENGGANTI NAMA WORKSPACE & DROPDOWN DARI "AMAL SHOLEH" MENJADI "YAYASAN GENERASI"
+  name: 'yayasan-generasi',
+  title: 'Yayasan Generasi',
 
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'ID_PROJECT_ANDA',
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
@@ -49,7 +50,7 @@ export default defineConfig({
                 boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
               }
             },
-            // 🚀 LOGO DIBIKIN BESAR DAN BERDIRI SENDIRI TANPA TEKS TAMBAHAN
+            // LOGO DIBIKIN BESAR DAN BERDIRI SENDIRI TANPA TEKS TAMBAHAN
             React.createElement('img', {
               src: '/images/logo-mengaji.png',
               alt: 'Logo Indonesia Mengaji',
