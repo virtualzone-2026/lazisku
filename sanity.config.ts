@@ -4,11 +4,11 @@ import { structureTool } from 'sanity/structure';
 import React from 'react';
 import { schemaTypes } from './sanity/schemaTypes';
 
-// BUAT THEME DENGAN AKSEN HIJAU YANG LEBIH TERANG DAN SEGAR
+// Menyesuaikan tema warna UI internal Sanity dengan hijau emerald segar
 const emeraldTheme = buildLegacyTheme({
   '--black': '#1f2937',
   '--white': '#ffffff',
-  '--brand-primary': '#10b981', // Hijau terang emerald murni
+  '--brand-primary': '#10b981', 
   '--component-bg': '#ffffff',
   '--component-text-color': '#1f2937',
   '--focus-color': '#fbbf24',
@@ -40,42 +40,26 @@ export default defineConfig({
             'div',
             {
               style: {
-                // Menggunakan background hijau terang solid sesuai request
-                background: '#10b981', 
-                color: 'white',
-                padding: '12px 20px',
+                // Menggunakan warna hijau terang yang tipis/soft agar logo kontras
+                background: '#e6f7f0', 
+                padding: '16px 24px',
                 display: 'flex',
                 alignItems: 'center',
-                borderBottom: '1px solid #059669',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                gap: '12px'
+                borderBottom: '1px solid #c2ebd9',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
               }
             },
-            // 🚀 GANTI EMOT ICON MENJADI LOGO ASLI RELEVAN
+            // 🚀 LOGO DIBIKIN BESAR DAN BERDIRI SENDIRI TANPA TEKS TAMBAHAN
             React.createElement('img', {
               src: '/images/logo-mengaji.png',
               alt: 'Logo Indonesia Mengaji',
               style: {
-                height: '32px', // Menyesuaikan tinggi navbar studio
+                height: '52px', // Ukuran diperbesar signifikan agar detail teks di gambar terbaca
                 width: 'auto',
                 objectFit: 'contain',
                 display: 'block'
               }
-            }),
-            React.createElement(
-              'div',
-              null,
-              React.createElement(
-                'h1',
-                { style: { margin: 0, fontSize: '14px', fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase' } },
-                'Yayasan Generasi Indonesia Mengaji'
-              ),
-              React.createElement(
-                'p',
-                { style: { margin: 0, fontSize: '10px', color: '#d1fae5', fontWeight: 600, letterSpacing: '0.3px' } },
-                'DASHBOARD MANAJEMEN UTAMA'
-              )
-            )
+            })
           ),
           props.renderDefault(props)
         );
