@@ -4,7 +4,6 @@ import { structureTool } from 'sanity/structure';
 import React from 'react';
 import { schemaTypes } from './sanity/schemaTypes';
 
-// Menyesuaikan tema warna UI internal Sanity dengan hijau emerald segar
 const emeraldTheme = buildLegacyTheme({
   '--black': '#1f2937',
   '--white': '#ffffff',
@@ -14,57 +13,56 @@ const emeraldTheme = buildLegacyTheme({
   '--focus-color': '#fbbf24',
 });
 
-export default defineConfig({
-  // 🚀 MENGGANTI NAMA WORKSPACE & DROPDOWN DARI "AMAL SHOLEH" MENJADI "YAYASAN GENERASI"
-  name: 'yayasan-generasi',
-  title: 'Yayasan Generasi',
+// 🚀 MENGGUNAKAN ID WORKSPACE YANG SESUAI DENGAN PERMINTAAN LENGKAP ANDA
+export default defineConfig([
+  {
+    name: 'yayasan-generasi-indonesia-mengaji', // ➔ Ini menggantikan ID url/teks kecil bawaan 'amalsholeh'
+    title: 'Yayasan Generasi Indonesia Mengaji', // ➔ Ini nama utama di dropdown menu
+    projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'ID_PROJECT_ANDA',
+    dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+    basePath: '/studio',
 
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'ID_PROJECT_ANDA',
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
-  basePath: '/studio',
+    plugins: [structureTool()],
 
-  plugins: [structureTool()],
+    schema: {
+      types: schemaTypes,
+    },
 
-  schema: {
-    types: schemaTypes,
-  },
+    theme: emeraldTheme,
 
-  theme: emeraldTheme,
-
-  studio: {
-    components: {
-      navbar: (props) => {
-        return React.createElement(
-          'div',
-          { style: { display: 'flex', flexDirection: 'column' } },
-          React.createElement(
+    studio: {
+      components: {
+        navbar: (props) => {
+          return React.createElement(
             'div',
-            {
-              style: {
-                // Menggunakan warna hijau terang yang tipis/soft agar logo kontras
-                background: '#e6f7f0', 
-                padding: '16px 24px',
-                display: 'flex',
-                alignItems: 'center',
-                borderBottom: '1px solid #c2ebd9',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
-              }
-            },
-            // LOGO DIBIKIN BESAR DAN BERDIRI SENDIRI TANPA TEKS TAMBAHAN
-            React.createElement('img', {
-              src: '/images/logo-mengaji.png',
-              alt: 'Logo Indonesia Mengaji',
-              style: {
-                height: '52px', // Ukuran diperbesar signifikan agar detail teks di gambar terbaca
-                width: 'auto',
-                objectFit: 'contain',
-                display: 'block'
-              }
-            })
-          ),
-          props.renderDefault(props)
-        );
+            { style: { display: 'flex', flexDirection: 'column' } },
+            React.createElement(
+              'div',
+              {
+                style: {
+                  background: '#e6f7f0', 
+                  padding: '16px 24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  borderBottom: '1px solid #c2ebd9',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+                }
+              },
+              React.createElement('img', {
+                src: '/images/logo-mengaji.png',
+                alt: 'Logo Indonesia Mengaji',
+                style: {
+                  height: '52px', 
+                  width: 'auto',
+                  objectFit: 'contain',
+                  display: 'block'
+                }
+              })
+            ),
+            props.renderDefault(props)
+          );
+        },
       },
     },
-  },
-});
+  }
+]);
