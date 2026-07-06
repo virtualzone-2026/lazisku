@@ -4,6 +4,96 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { PortableText } from '@portabletext/react';
 
+// 🚀 1. SUB-KOMPONEN FORMULIR DIKELUARKAN DARI KOMPONEN UTAMA (BUG FIXXED TUNTAS)
+interface FormProps {
+  donorName: string;
+  setDonorName: (v: string) => void;
+  donorPhone: string;
+  setDonorPhone: (v: string) => void;
+  paymentMethod: string;
+  setPaymentMethod: (v: string) => void;
+  amount: string;
+  handleAmountChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleDonate: () => Promise<void>;
+  submitting: boolean;
+}
+
+const DonationFormFields = ({
+  donorName,
+  setDonorName,
+  donorPhone,
+  setDonorPhone,
+  paymentMethod,
+  setPaymentMethod,
+  amount,
+  handleAmountChange,
+  handleDonate,
+  submitting,
+}: FormProps) => (
+  <div className="space-y-4 text-left">
+    <div>
+      <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nama Donatur</label>
+      <input
+        type="text"
+        placeholder="Hamba Allah (Boleh Kosong)"
+        className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-medium"
+        value={donorName}
+        onChange={(e) => setDonorName(e.target.value)}
+      />
+    </div>
+
+    <div>
+      <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nomor WhatsApp</label>
+      <input
+        type="tel"
+        placeholder="Contoh: 081234567890"
+        className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-medium"
+        value={donorPhone}
+        onChange={(e) => setDonorPhone(e.target.value)}
+      />
+    </div>
+
+    <div>
+      <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Metode Pembayaran</label>
+      <select
+        className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-bold bg-white cursor-pointer"
+        value={paymentMethod}
+        onChange={(e) => setPaymentMethod(e.target.value)}
+      >
+        <option value="qris">🟢 QRIS (E-Wallet & M-Banking Instant)</option>
+        <option value="bri_va">🏦 BRI Virtual Account</option>
+        <option value="bni_va">🏦 BNI Virtual Account</option>
+        <option value="cimb_niaga_va">🏦 CIMB Niaga Virtual Account</option>
+        <option value="permata_va">🏦 Permata Bank Virtual Account</option>
+        <option value="maybank_va">🏦 Maybank Virtual Account</option>
+      </select>
+    </div>
+
+    <div>
+      <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nominal Infak (Rp)</label>
+      <div className="relative flex items-center">
+        <span className="absolute left-3.5 text-xs font-bold text-gray-400">Rp</span>
+        <input
+          type="text"
+          placeholder="Minimal 10.000"
+          className="w-full border border-gray-200 rounded-xl pl-9 pr-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-emerald-500"
+          value={amount}
+          onChange={handleAmountChange}
+        />
+      </div>
+    </div>
+
+    <button
+      onClick={handleDonate}
+      disabled={submitting}
+      className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl transition text-xs uppercase tracking-widest hover:bg-emerald-700 disabled:bg-gray-300 shadow-md shadow-emerald-100"
+    >
+      {submitting ? 'Memproses...' : 'Donasi Sekarang 🚀'}
+    </button>
+  </div>
+);
+
+// 🚀 2. KOMPONEN UTAMA DETAIL CAMPAIGN
 export default function CampaignDetailPage() {
   const { slug } = useParams();
   const [program, setProgram] = useState<any>(null);
@@ -13,7 +103,6 @@ export default function CampaignDetailPage() {
   const [donorPhone, setDonorPhone] = useState(''); 
   const [submitting, setSubmitting] = useState(false);
   
-  // 🚀 STATE MOBILE RESPONSE
   const [isMobileFormOpen, setIsMobileFormOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('qris');
   const [activeTab, setActiveTab] = useState<'cerita' | 'donatur'>('cerita');
@@ -94,70 +183,19 @@ export default function CampaignDetailPage() {
   const percentage = Math.min(Math.round((program.collectedRaw / rawTarget) * 100), 100);
   const donorList = program.donors || [];
 
-  // 📦 SUB-COMPONENT FORMULIR (Agar tidak duplikasi kode antara desktop & mobile popup)
-  const DonationFormFields = () => (
-    <div className="space-y-4">
-      <div>
-        <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nama Donatur</label>
-        <input
-          type="text"
-          placeholder="Hamba Allah (Boleh Kosong)"
-          className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-medium"
-          value={donorName}
-          onChange={(e) => setDonorName(e.target.value)}
-        />
-      </div>
-
-      <div>
-        <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nomor WhatsApp</label>
-        <input
-          type="tel"
-          placeholder="Contoh: 081234567890"
-          className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-medium"
-          value={donorPhone}
-          onChange={(e) => setDonorPhone(e.target.value)}
-        />
-      </div>
-
-      <div>
-        <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Metode Pembayaran</label>
-        <select
-          className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-bold bg-white cursor-pointer"
-          value={paymentMethod}
-          onChange={(e) => setPaymentMethod(e.target.value)}
-        >
-          <option value="qris">🟢 QRIS (E-Wallet & M-Banking Instant)</option>
-          <option value="bri_va">🏦 BRI Virtual Account</option>
-          <option value="bni_va">🏦 BNI Virtual Account</option>
-          <option value="cimb_niaga_va">🏦 CIMB Niaga Virtual Account</option>
-          <option value="permata_va">🏦 Permata Bank Virtual Account</option>
-          <option value="maybank_va">🏦 Maybank Virtual Account</option>
-        </select>
-      </div>
-
-      <div>
-        <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nominal Infak (Rp)</label>
-        <div className="relative flex items-center">
-          <span className="absolute left-3.5 text-xs font-bold text-gray-400">Rp</span>
-          <input
-            type="text"
-            placeholder="Minimal 10.000"
-            className="w-full border border-gray-200 rounded-xl pl-9 pr-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-emerald-500"
-            value={amount}
-            onChange={handleAmountChange}
-          />
-        </div>
-      </div>
-
-      <button
-        onClick={handleDonate}
-        disabled={submitting}
-        className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl transition text-xs uppercase tracking-widest hover:bg-emerald-700 disabled:bg-gray-300 shadow-md shadow-emerald-100"
-      >
-        {submitting ? 'Memproses...' : 'Donasi Sekarang 🚀'}
-      </button>
-    </div>
-  );
+  // Bungkus paket props untuk dikirim ke sub-komponen luar
+  const formProps = {
+    donorName,
+    setDonorName,
+    donorPhone,
+    setDonorPhone,
+    paymentMethod,
+    setPaymentMethod,
+    amount,
+    handleAmountChange,
+    handleDonate,
+    submitting,
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-16 pb-24 lg:pb-8">
@@ -244,7 +282,7 @@ export default function CampaignDetailPage() {
           </div>
           
           <div className="mt-6 pt-6 border-t border-gray-100">
-            <DonationFormFields />
+            <DonationFormFields {...formProps} />
           </div>
         </div>
 
@@ -273,6 +311,7 @@ export default function CampaignDetailPage() {
         <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end animate-fade-in">
           <div className="absolute inset-0" onClick={() => setIsMobileFormOpen(false)} />
           
+          {/* Kotak Form Konten */}
           <div className="relative w-full bg-white rounded-t-[2.5rem] p-6 space-y-4 max-h-[85vh] overflow-y-auto shadow-2xl z-10 transition-transform duration-300 transform translate-y-0">
             <div className="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-2" onClick={() => setIsMobileFormOpen(false)} />
             
@@ -286,7 +325,7 @@ export default function CampaignDetailPage() {
               </button>
             </div>
 
-            <DonationFormFields />
+            <DonationFormFields {...formProps} />
           </div>
         </div>
       )}
