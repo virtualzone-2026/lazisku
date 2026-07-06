@@ -13,6 +13,8 @@ export default function CampaignDetailPage() {
   const [donorPhone, setDonorPhone] = useState(''); 
   const [submitting, setSubmitting] = useState(false);
   
+  // 🚀 MULTI-PAYMENT: State penampung metode pembayaran pilihan donatur (default: qris)
+  const [paymentMethod, setPaymentMethod] = useState('qris');
   const [activeTab, setActiveTab] = useState<'cerita' | 'donatur'>('cerita');
 
   useEffect(() => {
@@ -66,16 +68,17 @@ export default function CampaignDetailPage() {
           amount: cleanAmount,
           donorName: donorName.trim() || 'Hamba Allah',
           donorPhone: donorPhone.trim(), 
+          paymentMethod: paymentMethod, // 🚀 MENGIRIM PARAMETER METODE PEMBAYARAN DINAMIS KE BACKEND
         }),
       });
 
       const json = await res.json();
       
-      // 🚀 FIXED INTEGRATION LOGIC: Dialihkan langsung secara valid ke link invoice QRIS resmi Pakasir
+      // Dialihkan langsung ke tautan invoice resmi Pakasir sesuai metode yang dipilih
       if (json.success && json.paymentUrl) {
         window.location.href = json.paymentUrl;
       } else {
-        alert(json.error || 'Gagal memproses link pembayaran dari Pakasir.');
+        alert(json.error || 'Gagal memproses tautan pembayaran dari Pakasir.');
       }
     } catch (err) {
       alert('Terjadi kesalahan koneksi saat menghubungi server pembayaran.');
@@ -149,7 +152,6 @@ export default function CampaignDetailPage() {
             ) : (
               <div className="space-y-3 py-2">
                 {donorList.length > 0 ? (
-                  // Balik urutan list agar donatur terbaru muncul paling atas (descending UI)
                   [...donorList].reverse().map((donor: any, idx: number) => (
                     <div key={idx} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex items-center justify-between">
                       <div className="flex items-center space-x-3">
@@ -218,6 +220,26 @@ export default function CampaignDetailPage() {
                 value={donorPhone}
                 onChange={(e) => setDonorPhone(e.target.value)}
               />
+            </div>
+
+            {/* 🚀 MULTI-PAYMENT CHANNELS: Dropdown Pilihan Metode Pembayaran Sesuai Dokumentasi Pakasir C.3 */}
+            <div>
+              <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Metode Pembayaran</label>
+              <select
+                className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-bold bg-white cursor-pointer"
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+              >
+                <option value="qris">🟢 QRIS (E-Wallet & M-Banking Instant)</option>
+                <option value="bri_va">🏦 BRI Virtual Account</option>
+                <option value="bni_va">🏦 BNI Virtual Account</option>
+                <option value="cimb_niaga_va">🏦 CIMB Niaga Virtual Account</option>
+                <option value="permata_va">🏦 Permata Bank Virtual Account</option>
+                <option value="maybank_va">🏦 Maybank Virtual Account</option>
+                <option value="bnc_va">🏦 Bank Neo Commerce VA</option>
+                <option value="sampoerna_va">🏦 Bank Sampoerna VA</option>
+                <option value="atm_bersama_va">🌐 Jaringan ATM Bersama / Mandiri / Lainnya</option>
+              </select>
             </div>
 
             <div>

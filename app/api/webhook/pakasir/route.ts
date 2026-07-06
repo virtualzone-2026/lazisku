@@ -16,7 +16,7 @@ const client = createClient({
 });
 
 // ===================================================================
-// WEBHOOK PAKASIR AUTOMATION (BERDASARKAN DATA ARSITEKTUR FRONTEND)
+// WEBHOOK PAKASIR AUTOMATION (SESUAI DOKUMEN BAGIAN D)
 // ===================================================================
 export async function POST(request: Request) {
   try {
@@ -27,20 +27,16 @@ export async function POST(request: Request) {
     console.log(JSON.stringify(payload, null, 2));
     console.log("======================================");
 
-    // Pakasir biasanya mengirimkan data utama langsung di root body atau di dalam objek 'data'
-    const order_id = payload.order_id || payload.data?.order_id;
-    const status = payload.status || payload.data?.status;
-    const amount = payload.amount || payload.data?.amount;
+    // 🚀 FIXED SESUAI PEDOMAN (BAGIAN D): Pakasir mengirimkan data langsung di root objek body
+    const amount = payload.amount;
+    const order_id = payload.order_id;
+    const status = payload.status; // Berupa string "completed" jika sukses
 
-    // 1. Validasi Status Pembayaran Sukses dari Pakasir
-    // Pakasir mengembalikan string status seperti "PAID" atau "SUCCESS" saat dana berhasil masuk
-    const cleanStatus = status ? String(status).toUpperCase().trim() : '';
-    const successStatus = ["COMPLETED", "SUCCESS", "PAID", "200"];
-    
-    if (!successStatus.includes(cleanStatus)) {
+    // 1. Validasi Status Pembayaran Sukses dari Pakasir secara ketat
+    if (status !== 'completed') {
       return NextResponse.json({
         success: true,
-        message: `Status transaksi (${status}) belum berhasil, mutasi diabaikan.`
+        message: `Status transaksi (${status}) belum selesai, mutasi diabaikan.`
       });
     }
 
@@ -61,7 +57,7 @@ export async function POST(request: Request) {
     let programSlug = "sedekah-subuh"; // Default fallback aman
 
     if (pendingTransaction) {
-      // Jika transaksi di Sanity sudah berstatus 'success', hentikan proses agar tidak duplikat limit/perhitungan
+      // Jika transaksi di Sanity sudah berstatus 'success', hentikan proses agar tidak duplikat perhitungan
       if (pendingTransaction.status === 'success') {
         console.log(`♻️ Transaksi ${cleanOrderId} sudah pernah diproses sebelumnya (Status Sanity: success).`);
         return NextResponse.json({ success: true, message: "Transaksi sudah sukses diproses sebelumnya." });
@@ -131,7 +127,7 @@ export async function POST(request: Request) {
       console.log(`♻️ Transaksi ${cleanOrderId} terdeteksi di dalam array donors program utama.`);
     }
 
-    // Selalu kembalikan response JSON 200 OK dengan format sukses ke Pakasir agar server mereka berhenti mengirim hit ulang webhook
+    // Selalu kembalikan response JSON dengan status HTTP 200 OK ke Pakasir agar server mereka berhenti mengirim hit ulang webhook
     return NextResponse.json({
       success: true,
       message: `Sukses otomatis! Dana terverifikasi dan nama ${donorNameFromForm} berhasil ditampilkan.`
