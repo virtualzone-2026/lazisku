@@ -8,7 +8,32 @@ import Campaign from '@/components/Campaign';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default function ProgramPage() {
+// Fungsi pembantu untuk mengambil data langsung dari API internal secara aman di level Server
+async function getProgramsData() {
+  try {
+    // Memanggil API route programs lokal dengan menyuntikkan timestamp untuk mematikan cache di tingkat server cdn
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/programs?v=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+      },
+    });
+
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.success ? json.data : [];
+  } catch (error) {
+    console.error('🔥 Server Fetch Error di Halaman Program:', error);
+    return [];
+  }
+}
+
+export default async function ProgramPage() {
+  // Mengambil data programs real-time langsung saat request masuk ke server
+  const initialPrograms = await getProgramsData();
+
   return (
     // 🚀 FIXED: Menyelaraskan md:px-12 menjadi md:px-16 agar presisi lurus simetris dengan halaman Home & Blog
     <div className="min-h-screen bg-gray-50 px-4 md:px-16 py-12">
@@ -32,7 +57,8 @@ export default function ProgramPage() {
             GRID COMPONENT: MENAMPILKAN CARDS & FITUR FILTERING DATA REAL-TIME
             =================================================================== */}
         <div className="bg-transparent">
-          <Campaign />
+          {/* 🚀 FIXED: Mengirimkan data segar dari server ke dalam komponen Client <Campaign /> */}
+          <Campaign initialData={initialPrograms} />
         </div>
 
       </div>

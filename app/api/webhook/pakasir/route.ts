@@ -2,15 +2,17 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@sanity/client';
 
+export const dynamic = 'force-dynamic';
+
 // ===================================================================
 // SANITY CLIENT WRITE (Menggunakan Token Hardcode Editor Anda)
 // ===================================================================
 const client = createClient({
-  projectId: 'jmgc1ejr', 
+  projectId: '19a8r8sr', 
   dataset: 'production',
   useCdn: false, 
   apiVersion: '2024-01-01',
-  token: 'sk7NqErRROXCLrscMNjmzvwt2hhpiI61vdbMqw0oN6zBkvrtEhOJG4GS71LcC4ldpRhqiTVCEkzYfAznTnap1Pv5LZQZt9Uo7Ixqw0AAOq7ReDbPO9tciZyXkTlMA2VoAA1NiU6ITL5PqGkGCtvQuLCiRENowtxfPBbDAnusAU1pu2tUvnt7', 
+  token: 'skG4ics36bFQorNtT6FkLP5F9o8JXwb5uc4Hf4qaMNT7RMZbRvbWb4oti8wtFcGzoQM4DL3Fgo06PRnacLU4FGkzKi0Z0TQM1JQGS5Cqbj5KTXjQXYSrA7sdy6oPhkVJX3Co2ZcncmHaFRzSlqsbbRmFNC0T2vrqJe2iCx89Uerby8ezsl08', 
 });
 
 // ===================================================================
@@ -25,20 +27,26 @@ export async function POST(request: Request) {
     console.log(JSON.stringify(payload, null, 2));
     console.log("======================================");
 
-    const { amount, order_id, status } = payload;
+    // Pakasir biasanya mengirimkan data utama langsung di root body atau di dalam objek 'data'
+    const order_id = payload.order_id || payload.data?.order_id;
+    const status = payload.status || payload.data?.status;
+    const amount = payload.amount || payload.data?.amount;
 
     // 1. Validasi Status Pembayaran Sukses dari Pakasir
-    const successStatus = ["completed", "success", "paid", "200", 200];
-    if (!successStatus.includes(status)) {
+    // Pakasir mengembalikan string status seperti "PAID" atau "SUCCESS" saat dana berhasil masuk
+    const cleanStatus = status ? String(status).toUpperCase().trim() : '';
+    const successStatus = ["COMPLETED", "SUCCESS", "PAID", "200"];
+    
+    if (!successStatus.includes(cleanStatus)) {
       return NextResponse.json({
         success: true,
-        message: "Status transaksi belum berhasil, mutasi diabaikan."
+        message: `Status transaksi (${status}) belum berhasil, mutasi diabaikan.`
       });
     }
 
     const cleanOrderId = order_id ? String(order_id).trim() : '';
     if (!cleanOrderId) {
-      return NextResponse.json({ success: false, message: "Order ID tidak ditemukan." }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Order ID tidak ditemukan dalam payload." }, { status: 400 });
     }
 
     // ===================================================================
@@ -53,6 +61,12 @@ export async function POST(request: Request) {
     let programSlug = "sedekah-subuh"; // Default fallback aman
 
     if (pendingTransaction) {
+      // Jika transaksi di Sanity sudah berstatus 'success', hentikan proses agar tidak duplikat limit/perhitungan
+      if (pendingTransaction.status === 'success') {
+        console.log(`♻️ Transaksi ${cleanOrderId} sudah pernah diproses sebelumnya (Status Sanity: success).`);
+        return NextResponse.json({ success: true, message: "Transaksi sudah sukses diproses sebelumnya." });
+      }
+
       if (pendingTransaction.donorName && String(pendingTransaction.donorName).trim() !== "") {
         donorNameFromForm = String(pendingTransaction.donorName).trim();
       }
@@ -63,7 +77,7 @@ export async function POST(request: Request) {
       // Update status data transaksi penampung sementara di Sanity agar tidak terproses ganda
       await client.patch(pendingTransaction._id).set({ status: 'success' }).commit();
     } else {
-      console.log(`⚠️ Data transaksi pending untuk ID ${cleanOrderId} tidak ditemukan. Menggunakan fallback kata kunci.`);
+      console.log(`⚠️ Data transaksi pending untuk ID ${cleanOrderId} tidak ditemukan di Sanity. Menggunakan fallback kata kunci.`);
       const upperOrderId = cleanOrderId.toUpperCase();
       if (upperOrderId.includes('MUALAF')) {
         programSlug = "bantu-mualaf-dan-dhuafa";
@@ -80,7 +94,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: `Program dengan slug '${programSlug}' tidak ditemukan.` }, { status: 404 });
     }
 
+    // Pastikan nominal diambil dengan benar (prioritas dari callback Pakasir, fallback dari record transaksi)
     const donationAmount = Number(amount) || Number(pendingTransaction?.amount) || 0;
+    
+    // Format tanggal Indonesia (contoh: 6 Juli 2026)
     const currentDate = new Date().toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
@@ -92,12 +109,11 @@ export async function POST(request: Request) {
     // ===================================================================
     const existingDonors = finalProgram.donors || [];
     const duplicateIndex = existingDonors.findIndex((d: any) => d.orderId === cleanOrderId);
-    let result;
 
     if (duplicateIndex === -1) {
       console.log(`💰 DANA MASUK & VALID: Memunculkan nama ${donorNameFromForm} senilai Rp ${donationAmount} di program ${finalProgram.title}`);
       
-      result = await client
+      await client
         .patch(finalProgram._id)
         .setIfMissing({ collectedRaw: 0, donors: [] })
         .inc({ collectedRaw: donationAmount }) 
@@ -112,10 +128,10 @@ export async function POST(request: Request) {
         ])
         .commit();
     } else {
-      console.log(`♻️ Transaksi ${cleanOrderId} sudah pernah tercatat sukses sebelumnya.`);
-      result = finalProgram;
+      console.log(`♻️ Transaksi ${cleanOrderId} terdeteksi di dalam array donors program utama.`);
     }
 
+    // Selalu kembalikan response JSON 200 OK dengan format sukses ke Pakasir agar server mereka berhenti mengirim hit ulang webhook
     return NextResponse.json({
       success: true,
       message: `Sukses otomatis! Dana terverifikasi dan nama ${donorNameFromForm} berhasil ditampilkan.`

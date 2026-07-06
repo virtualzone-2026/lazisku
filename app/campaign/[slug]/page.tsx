@@ -1,4 +1,3 @@
-// app/campaign/[slug]/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -72,14 +71,14 @@ export default function CampaignDetailPage() {
 
       const json = await res.json();
       
-      // 🚀 FIXED LOGIC: Dialihkan secara valid ke halaman QRIS internal kode unik kita
-      if (json.success && json.orderId) {
-        window.location.href = `/pay-qris/${json.orderId}`;
+      // 🚀 FIXED INTEGRATION LOGIC: Dialihkan langsung secara valid ke link invoice QRIS resmi Pakasir
+      if (json.success && json.paymentUrl) {
+        window.location.href = json.paymentUrl;
       } else {
-        alert(json.error || 'Gagal memproses pembayaran.');
+        alert(json.error || 'Gagal memproses link pembayaran dari Pakasir.');
       }
     } catch (err) {
-      alert('Terjadi kesalahan koneksi.');
+      alert('Terjadi kesalahan koneksi saat menghubungi server pembayaran.');
     } finally {
       setSubmitting(false);
     }
@@ -150,19 +149,22 @@ export default function CampaignDetailPage() {
             ) : (
               <div className="space-y-3 py-2">
                 {donorList.length > 0 ? (
-                  donorList.map((donor: any, idx: number) => (
+                  // Balik urutan list agar donatur terbaru muncul paling atas (descending UI)
+                  [...donorList].reverse().map((donor: any, idx: number) => (
                     <div key={idx} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">
-                          {donor.name.toUpperCase().slice(0, 1)}
+                          {(donor.name || 'H').toUpperCase().slice(0, 1)}
                         </div>
                         <div>
-                          <p className="text-xs font-black text-gray-700">{donor.name}</p>
+                          <p className="text-xs font-black text-gray-700">{donor.name || 'Hamba Allah'}</p>
                           <p className="text-[10px] text-gray-400 font-medium">{donor.date || 'Baru Saja'}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-black text-emerald-600">+{donor.amountFormatted || `Rp ${Number(donor.amount).toLocaleString('id-ID')}`}</p>
+                        <p className="text-xs font-black text-emerald-600">
+                          +{`Rp ${Number(donor.amount || 0).toLocaleString('id-ID')}`}
+                        </p>
                         <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Verified ➔</p>
                       </div>
                     </div>
