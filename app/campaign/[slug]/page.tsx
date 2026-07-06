@@ -56,17 +56,19 @@ const DonationFormFields = ({
     <div>
       <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Metode Pembayaran</label>
       <select
-        className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-bold bg-white cursor-pointer"
-        value={paymentMethod}
-        onChange={(e) => setPaymentMethod(e.target.value)}
-      >
-        <option value="qris">🟢 QRIS (E-Wallet & M-Banking Instant)</option>
-        <option value="bri_va">🏦 BRI Virtual Account</option>
-        <option value="bni_va">🏦 BNI Virtual Account</option>
-        <option value="cimb_niaga_va">🏦 CIMB Niaga Virtual Account</option>
-        <option value="permata_va">🏦 Permata Bank Virtual Account</option>
-        <option value="maybank_va">🏦 Maybank Virtual Account</option>
-      </select>
+  className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-bold bg-white cursor-pointer"
+  value={paymentMethod}
+  onChange={(e) => setPaymentMethod(e.target.value)}
+>
+  <option value="qris">🟢 QRIS (E-Wallet & M-Banking Instant)</option>
+  <option value="bri_va">🏦 BRI Virtual Account</option>
+  <option value="bni_va">🏦 BNI Virtual Account</option>
+  <option value="cimb_niaga_va">🏦 CIMB Niaga Virtual Account</option>
+  <option value="permata_va">🏦 Permata Bank Virtual Account</option>
+  <option value="maybank_va">🏦 Maybank Virtual Account</option>
+  {/* 🚀 BERHASIL DITAMBAHKAN: Mendukung transfer antar rekening bank lain */}
+  <option value="atm_bersama_va">🌐 ATM Bersama (Mandiri, BCA & Bank Lainnya)</option>
+</select>
     </div>
 
     <div>
