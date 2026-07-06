@@ -14,52 +14,59 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// 🚀 MASTER SEO METADATA (Google & Medsos Ready 2026)
+// 🚀 MASTER SEO METADATA (Google, Bing, & Social Media Ready 2026)
+// Dioptimalkan penuh untuk LAZIS Khoiro Ummah - Lazisku.com
 export const metadata: Metadata = {
   title: {
-    default: "Indonesia Mengaji - Budayakan Mengaji Wujudkan Generasi Qur'ani",
-    template: "%s | Indonesia Mengaji"
+    default: "LAZIS Khoiro Ummah | Platform Sedekah, Infaq & Zakat Online Amanah",
+    template: "%s | LAZIS Khoiro Ummah"
   },
-  description: "Platform galang donasi Al-Quran, wakaf Quran, sedekah penghafal Quran, infak santri, serta aksi peduli yatim dhuafa amanah bersama Indonesia Mengaji Foundation.",
+  description: "Salurkan sedekah, infaq, zakat, dan wakaf Anda secara instan dan amanah melalui LAZIS Khoiro Ummah (lazisku.com). Mengalirkan keberkahan dan kepedulian untuk pemberdayaan ummat, yatim, dhuafa, dan program sosial kemanusiaan.",
   keywords: [
-    "galang donasi quran", 
-    "wakaf quran indonesia", 
-    "sedekah penghafal quran", 
-    "sedekah santri mengaji", 
-    "peduli yatim dhuafa", 
-    "indonesia mengaji", 
-    "banyumas mengaji"
+    "lazis khoiro ummah",
+    "lazisku",
+    "lazisku com",
+    "sedekah online",
+    "infaq online",
+    "bayar zakat online",
+    "wakaf quran",
+    "sedekah subuh",
+    "donasi yatim dhuafa",
+    "lembaga amil zakat amanah",
+    "donasi qris instant"
   ],
-  authors: [{ name: "Indonesia Mengaji Foundation" }],
-  metadataBase: new URL("https://indonesiamengaji.net"),
+  authors: [{ name: "LAZIS Khoiro Ummah", url: "https://lazisku.com" }],
+  creator: "LAZIS Khoiro Ummah",
+  publisher: "LAZIS Khoiro Ummah",
+  metadataBase: new URL("https://lazisku.com"),
   alternates: {
     canonical: "/",
   },
-  // Open Graph / Facebook / WhatsApp / Telegram Card
+  // Open Graph / Facebook / WhatsApp / Telegram Card Preview
   openGraph: {
-    title: "Indonesia Mengaji - Budayakan Mengaji Wujudkan Generasi Qur'ani",
-    description: "Salurkan wakaf Quran, sedekah penghafal Quran, dan infak yatim dhuafa secara praktis dan otomatis via QRIS bersama Indonesia Mengaji.",
-    url: "https://indonesiamengaji.net",
-    siteName: "Indonesia Mengaji",
+    title: "LAZIS Khoiro Ummah | Platform Sedekah, Infaq & Zakat Online Amanah",
+    description: "Tunaikan kepedulian Anda dengan mudah. Salurkan sedekah subuh, infaq produktif, dan zakat mal/fitrah secara transparan dan otomatis via QRIS & VA bersama lazisku.com.",
+    url: "https://lazisku.com",
+    siteName: "LAZIS Khoiro Ummah",
     locale: "id_ID",
     type: "website",
     images: [
       {
-        url: "/images/indonesiamengaji.jpeg",
+        url: "/logo-lazisku.png", // Mengarah langsung ke file logo LAZISKU utama Anda
         width: 1200,
         height: 630,
-        alt: "Indonesia Mengaji Foundation - Budayakan Mengaji Wujudkan Generasi Qur'ani",
+        alt: "LAZIS Khoiro Ummah - Mengalirkan Keberkahan Melalui Sedekah dan Infaq",
       },
     ],
   },
-  // Twitter Card
+  // Twitter / X Card Preview
   twitter: {
     card: "summary_large_image",
-    title: "Indonesia Mengaji - Budayakan Mengaji Wujudkan Generasi Qur'ani",
-    description: "Platform galang donasi Al-Quran, wakaf Quran, dan sedekah penghafal Quran amanah.",
-    images: ["/images/mengaji.jpeg"],
+    title: "LAZIS Khoiro Ummah | Sedekah & Infaq Online Mudah",
+    description: "Platform resmi galang donasi, sedekah, infaq, dan zakat amanah bersama LAZIS Khoiro Ummah.",
+    images: ["/logo-lazisku.png"],
   },
-  // Kebijakan Bot Google Indexing
+  // Kebijakan Ketat Bot Google Indexing (Memaksa Google Merayapi Semua Halaman Secara Maksimal)
   robots: {
     index: true,
     follow: true,

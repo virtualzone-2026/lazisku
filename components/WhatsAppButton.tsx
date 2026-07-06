@@ -4,7 +4,7 @@ import React from 'react';
 
 export default function WhatsAppButton() {
   // Nomor WA dibersihkan dari spasi dan tanda minus untuk URL API WhatsApp
-  const whatsappNumber = '6282230076051'; 
+  const whatsappNumber = '6281225147373'; 
   const defaultMessage = encodeURIComponent('Halo Admin Indonesia Mengaji, saya ingin bertanya mengenai program donasi...');
   const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${defaultMessage}`;
 

@@ -26,7 +26,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-xs text-gray-400 leading-relaxed font-medium">
-              Platform crowdfunding resmi Yayasan Generasi Indonesia Mengaji. Menjembatani kebaikan Anda melalui penyaluran infak dan donasi yang aman, transparan, dan amanah menggunakan QRIS Instan.
+              Platform crowdfunding resmi Yayasan Khoiro Ummah Bina Umat. Menjembatani kebaikan Anda melalui penyaluran infak dan donasi yang aman, transparan, dan amanah menggunakan QRIS Instan.
             </p>
           </div>
 
@@ -74,12 +74,12 @@ export default function Footer() {
             <ul className="space-y-2 text-xs font-medium text-gray-400 leading-relaxed">
               <li>
                 <span className="font-bold text-gray-700 block">Alamat Kantor:</span>
-                Jl. Rawa Betan Kampung Cipicung, Desa: Mekarsari Kec : Cileungsi, Kab : Bogor, Jawa Barat
+                Bentar, Salem, Brebes, Jawa Tengah
               </li>
               <li>
                 <span className="font-bold text-gray-700 block">WhatsApp:</span>
-                <a href="https://wa.me/6282230076051" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-600 font-semibold transition-colors">
-                  0822-3007-6051
+                <a href="https://wa.me/6281225147373" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-600 font-semibold transition-colors">
+                  0812-2514-7373
                 </a>
               </li>
             </ul>
@@ -92,7 +92,7 @@ export default function Footer() {
           
           {/* Hak Cipta */}
           <div>
-            &copy; {currentYear} <span className="font-bold text-gray-600 uppercase">Generasi Indonesia Mengaji</span>. Hak Cipta Dilindungi.
+            &copy; {currentYear} <span className="font-bold text-gray-600 uppercase">lazisku.com</span>. Hak Cipta Dilindungi.
           </div>
 
           {/* Tautan Legalitas */}
