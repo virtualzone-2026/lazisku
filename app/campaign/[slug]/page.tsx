@@ -233,7 +233,7 @@ export default function CampaignDetailPage() {
           </div>
         </div>
 
-        {/* KOLOM KANAN: FORMULIR DONASI DESKTOP (Sembunyi di Mobile via hidden lg:block) */}
+        {/* KOLOM KANAN: FORMULIR DONASI DESKTOP */}
         <div className="hidden lg:block bg-white rounded-3xl p-6 shadow-sm border border-gray-100 h-fit lg:sticky lg:top-24">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Dana Terkumpul</p>
           <p className="text-3xl font-black text-emerald-600 mt-1">{program.collected || `Rp ${Number(program.collectedRaw).toLocaleString('id-ID')}`}</p>
@@ -254,7 +254,7 @@ export default function CampaignDetailPage() {
           🚀 INTERFASE MOBILE LAYOUT POP-UP & TOMBOL MELAYANG STICKY BOTTOM
           =================================================================== */}
       
-      {/* 1. Bar Sticky Tetap Nempel di Layar Mobile Paling Bawah (FIXED: Tanpa Rounded Corners) */}
+      {/* Bar Sticky Tetap Nempel di Layar Mobile Paling Bawah (Lurus Tanpa Rounded Corners) */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 z-40 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-none">
         <div className="flex flex-col">
           <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Terkumpul</span>
@@ -268,21 +268,7 @@ export default function CampaignDetailPage() {
         </button>
       </div>
 
-      {/* 2. 🚀 FIXED: TOMBOL FLOATING WHATSAPP CHAT (Digeser naik ke atas agar tidak menumpuk dengan bar donasi) */}
-      <div className="lg:hidden fixed bottom-24 right-4 z-40">
-        <a 
-          href={`https://wa.me/62895324383400?text=Assalamualaikum,%20saya%20ingin%20bertanya%20mengenai%20program%20${encodeURIComponent(program?.title || '')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-14 h-14 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-xl hover:bg-emerald-600 transition-all active:scale-95 animate-pulse"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.907h.004c4.368 0 7.926-3.559 7.93-7.93a7.897 7.897 0 0 0-2.327-5.645zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.69-4.98c-.202-.101-1.194-.588-1.378-.653-.185-.069-.32-.103-.454.101-.135.202-.52.653-.637.786-.117.135-.235.151-.438.051-.2.101-.843-.311-1.607-.994-.595-.531-1.002-1.185-1.119-1.385-.117-.2-.012-.309.088-.41.09-.092.202-.235.3-.351.1-.117.135-.2.203-.335.069-.135.034-.251-.017-.352-.051-.101-.454-1.091-.622-1.496-.164-.398-.332-.344-.454-.344-.117-.006-.252-.006-.388-.006-.136 0-.356.051-.543.251-.188.2-.714.698-.714 1.706 0 1.008.732 1.982.833 2.115.1.135 1.442 2.202 3.492 3.084.488.209.87.335 1.168.43.491.156.938.133 1.292.081.396-.06 1.194-.488 1.362-1.031.168-.543.168-.101.117-.2-.051-.1-.186-.151-.388-.251z"/>
-          </svg>
-        </a>
-      </div>
-
-      {/* 3. Modal Pop-up Form Inputan (Akan Sliding Up ketika Tombol diklik) */}
+      {/* Modal Pop-up Form Inputan */}
       {isMobileFormOpen && (
         <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end animate-fade-in">
           <div className="absolute inset-0" onClick={() => setIsMobileFormOpen(false)} />
