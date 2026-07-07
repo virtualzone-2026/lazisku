@@ -54,7 +54,7 @@ export default function KontakPage() {
                   <h4 className="text-xs font-black text-gray-800 uppercase tracking-wide">Alamat Pusat</h4>
                   <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
                     Kantor Pelayanan LAZIS Khoiro Ummah <br />
-                    Banyumas, Jawa Tengah, Indonesia
+                    Bentar, Salem, Brebes, Jawa Tengah, Indonesia
                   </p>
                 </div>
               </div>
@@ -118,14 +118,16 @@ export default function KontakPage() {
 
       </div>
 
-      {/* 3. MAP EMBED PLACEHOLDER */}
-      <div className="w-full bg-gray-100 h-64 border-t border-gray-200 flex items-center justify-center rounded-none select-none">
-        <div className="text-center space-y-1">
-          <span className="text-2xl block">🗺️</span>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Peta Integrasi Lokasi Digital</p>
-          <p className="text-[10px] text-gray-400">LAZIS Khoiro Ummah Regional Banyumas</p>
-        </div>
-      </div>
+     {/* 3. GOOGLE MAPS EMBED SECTION */}
+<div className="w-full bg-gray-100 h-64 border-t border-gray-200 rounded-none overflow-hidden">
+  <iframe
+    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3958.764011972125!2d108.80878867454426!3d-7.153261370176541!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e6f9d8bcc713919%3A0x7304909c6d3d6f48!2sPondok%20Pesantren%20Khoiro%20Ummah!5e0!3m2!1sid!2sid!4v1783431371414!5m2!1sid!2sid" // 🚀 GANTI URL src ini dengan tautan milik LAZIS Khoiro Ummah dari Google Maps
+    className="w-full h-full border-0 rounded-none"
+    allowFullScreen={true}
+    loading="lazy"
+    referrerPolicy="no-referrer-when-downgrade"
+  ></iframe>
+</div>
 
     </div>
   );
