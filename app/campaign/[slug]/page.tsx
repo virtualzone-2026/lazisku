@@ -301,7 +301,7 @@ export default function CampaignDetailPage() {
           onClick={() => setIsMobileFormOpen(true)}
           className="bg-emerald-600 text-white text-xs font-black uppercase tracking-widest px-6 py-3.5 rounded-none shadow-md shadow-emerald-100 active:scale-95 transition-all duration-150"
         >
-          Klik Donasi 🚀
+          Klik Donasi   >>> 🚀
         </button>
       </div>
 
