@@ -105,7 +105,9 @@ export default function CampaignDetailPage() {
   
   const [isMobileFormOpen, setIsMobileFormOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('qris');
-  const [activeTab, setActiveTab] = useState<'cerita' | 'donatur'>('cerita');
+  
+  // 🚀 FIXED TAB: Menambahkan state 'laporan' pada sistem manajemen tab utama
+  const [activeTab, setActiveTab] = useState<'cerita' | 'donatur' | 'laporan'>('cerita');
 
   useEffect(() => {
     fetch('/api/programs?v=' + Date.now(), {
@@ -182,6 +184,9 @@ export default function CampaignDetailPage() {
   const rawTarget = program.targetAmount || 50000000;
   const percentage = Math.min(Math.round((program.collectedRaw / rawTarget) * 100), 100);
   const donorList = program.donors || [];
+  
+  // Ambil array laporan/implementasi program dari Sanity CMS (jika ada)
+  const reportList = program.reports || [];
 
   const formProps = {
     donorName,
@@ -200,10 +205,10 @@ export default function CampaignDetailPage() {
     <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-16 pb-24 lg:pb-8">
       <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* KOLOM KIRI: DETAIL CERITA & DAFTAR DONATUR */}
+        {/* KOLOM KIRI: DETAIL CERITA, DAFTAR DONATUR, & TAB LAPORAN */}
         <div className="lg:col-span-2 space-y-5 flex flex-col">
-          <div>
-            <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider">
+          <div className="text-left">
+            <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2.5 py-1 rounded-none uppercase tracking-wider">
               {program.category || 'Kebaikan'}
             </span>
             <h1 className="text-2xl md:text-3xl font-extrabold text-[#333333] mt-3 leading-tight tracking-tight">
@@ -211,10 +216,12 @@ export default function CampaignDetailPage() {
             </h1>
           </div>
           
-          <div className="rounded-2xl overflow-hidden bg-gray-100 aspect-[16/9] w-full shadow-sm border border-gray-200/60">
+          {/* 🚀 FIXED STYLE: Mengubah rounded-2xl menjadi rounded-none */}
+          <div className="rounded-none overflow-hidden bg-gray-100 aspect-[16/9] w-full shadow-sm border border-gray-200/60">
             <img src={program.image} alt={program.title} className="w-full h-full object-cover" />
           </div>
 
+          {/* SIKLUS NAVIGASI TAB MENU */}
           <div className="flex border-b border-gray-200 text-xs font-bold text-gray-400 space-x-6 pt-2">
             <button 
               onClick={() => setActiveTab('cerita')}
@@ -232,10 +239,19 @@ export default function CampaignDetailPage() {
             >
               DONATUR ({donorList.length})
             </button>
+            {/* 🚀 FIXED TAB: Tombol Navigasi Laporan Penyaluran */}
+            <button 
+              onClick={() => setActiveTab('laporan')}
+              className={`pb-3 transition-all duration-200 focus:outline-none ${
+                activeTab === 'laporan' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'hover:text-gray-600 border-b-2 border-transparent'
+              }`}
+            >
+              LAPORAN PENYALURAN ({reportList.length})
+            </button>
           </div>
 
-          <div className="bg-transparent py-2 w-full">
-            {activeTab === 'cerita' ? (
+          <div className="bg-transparent py-2 w-full text-left">
+            {activeTab === 'cerita' && (
               <div className="text-gray-700 text-base leading-relaxed space-y-4 font-normal tracking-wide dynamic-portable-text">
                 {program.description ? (
                   typeof program.description === 'string' ? <p>{program.description}</p> : <PortableText value={program.description} />
@@ -243,13 +259,17 @@ export default function CampaignDetailPage() {
                   <p className="text-gray-400 italic text-xs">Belum ada cerita detail untuk program ini.</p>
                 )}
               </div>
-            ) : (
+            )}
+
+            {activeTab === 'donatur' && (
               <div className="space-y-3 py-2">
                 {donorList.length > 0 ? (
                   [...donorList].reverse().map((donor: any, idx: number) => (
-                    <div key={idx} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex items-center justify-between">
+                    /* 🚀 FIXED STYLE: Mengubah rounded-xl menjadi rounded-none */
+                    <div key={idx} className="bg-white border border-gray-100 rounded-none p-4 shadow-sm flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">
+                        {/* 🚀 FIXED STYLE: Mengubah avatar menjadi rounded-none */}
+                        <div className="w-9 h-9 rounded-none bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">
                           {(donor.name || 'H').toUpperCase().slice(0, 1)}
                         </div>
                         <div>
@@ -258,7 +278,7 @@ export default function CampaignDetailPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-black text-emerald-600">+{`Rp ${Number(donor.amount || 0).toLocaleString('id-ID')}`}</p>
+                        <p className="text-xs font-black text-emerald-600">{`+Rp ${Number(donor.amount || 0).toLocaleString('id-ID')}`}</p>
                       </div>
                     </div>
                   ))
@@ -267,14 +287,44 @@ export default function CampaignDetailPage() {
                 )}
               </div>
             )}
+
+            {/* 🚀 FIXED TAB CONTENT: Area Render Histori Laporan Implementasi Program Ziswaf */}
+            {activeTab === 'laporan' && (
+              <div className="space-y-4 py-2">
+                {reportList.length > 0 ? (
+                  [...reportList].reverse().map((report: any, idx: number) => (
+                    <div key={idx} className="bg-white border border-gray-100 rounded-none p-5 shadow-sm space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
+                        <h4 className="text-sm font-black text-gray-800 uppercase tracking-tight">{report.title || 'Laporan Penyaluran'}</h4>
+                        <span className="text-[10px] text-gray-400 font-bold">{report.date}</span>
+                      </div>
+                      <div className="text-xs text-gray-600 leading-relaxed space-y-2">
+                        {typeof report.content === 'string' ? <p>{report.content}</p> : <PortableText value={report.content} />}
+                      </div>
+                      {report.image && (
+                        <div className="pt-2 max-w-md">
+                          <img src={report.image} alt="Bukti Implementasi" className="w-full h-auto object-cover border border-gray-100 rounded-none" />
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="border border-dashed border-gray-200 p-8 text-center rounded-none bg-white">
+                    <p className="text-xs text-gray-400 font-medium">
+                      Belum ada pembaruan laporan implementasi dana. Seluruh pencatatan penyaluran amil berkala untuk program ini akan dimuat secara transparan di halaman ini.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* KOLOM KANAN: FORMULIR DONASI DESKTOP (Menggunakan rounded-none untuk form internalnya) */}
+        {/* KOLOM KANAN: FORMULIR DONASI DESKTOP (Menggunakan rounded-none) */}
         <div className="hidden lg:block bg-white rounded-none p-6 shadow-sm border border-gray-100 h-fit lg:sticky lg:top-24">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Dana Terkumpul</p>
-          <p className="text-3xl font-black text-emerald-600 mt-1">{program.collected || `Rp ${Number(program.collectedRaw).toLocaleString('id-ID')}`}</p>
-          <p className="text-[11px] text-gray-400 mt-0.5 font-medium">Target Rp {rawTarget.toLocaleString('id-ID')}</p>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-left">Dana Terkumpul</p>
+          <p className="text-3xl font-black text-emerald-600 mt-1 text-left">{program.collected || `Rp ${Number(program.collectedRaw).toLocaleString('id-ID')}`}</p>
+          <p className="text-[11px] text-gray-400 mt-0.5 font-medium text-left">Target Rp {rawTarget.toLocaleString('id-ID')}</p>
 
           <div className="w-full bg-gray-100 h-2 rounded-none mt-4 overflow-hidden">
             <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
@@ -291,9 +341,9 @@ export default function CampaignDetailPage() {
           🚀 INTERFASE MOBILE LAYOUT POP-UP & TOMBOL MELAYANG STICKY BOTTOM
           =================================================================== */}
       
-      {/* Bar Sticky Tetap Nempel di Layar Mobile Paling Bawah (Lurus Tanpa Rounded Corners) */}
+      {/* Bar Sticky Tetap Nempel di Layar Mobile Paling Bawah */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 z-40 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-none">
-        <div className="flex flex-col">
+        <div className="flex flex-col text-left">
           <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Terkumpul</span>
           <span className="text-base font-black text-emerald-600">{program.collected || `Rp ${Number(program.collectedRaw).toLocaleString('id-ID')}`}</span>
         </div>
@@ -305,7 +355,7 @@ export default function CampaignDetailPage() {
         </button>
       </div>
 
-      {/* Modal Pop-up Form Inputan Mobile (Menggunakan rounded-none untuk form internalnya) */}
+      {/* Modal Pop-up Form Inputan Mobile */}
       {isMobileFormOpen && (
         <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end animate-fade-in">
           <div className="absolute inset-0" onClick={() => setIsMobileFormOpen(false)} />
@@ -314,7 +364,7 @@ export default function CampaignDetailPage() {
             <div className="w-12 h-1 bg-gray-200 rounded-none mx-auto mb-2" onClick={() => setIsMobileFormOpen(false)} />
             
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-              <h3 className="text-sm font-black text-[#333333] uppercase tracking-wide">Isi Data Infak</h3>
+              <h3 className="text-sm font-black text-sm text-[#333333] uppercase tracking-wide">Isi Data Infak</h3>
               <button 
                 onClick={() => setIsMobileFormOpen(false)}
                 className="w-7 h-7 bg-gray-50 rounded-none text-gray-400 text-xs font-bold flex items-center justify-center border border-gray-100"
