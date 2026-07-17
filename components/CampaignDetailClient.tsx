@@ -3,6 +3,87 @@
 import React, { useState, useEffect } from 'react';
 import { PortableText } from '@portabletext/react';
 
+// ===================================================================
+// IN-LINE WIDGET KALKULATOR ZAKAT (SUDUT SIKU / ROUNDED-NONE)
+// ===================================================================
+function EmbeddedZakatCalculator({ onApplyAmount }: { onApplyAmount: (val: string) => void }) {
+  const [activeTab, setActiveTab] = useState<'penghasilan' | 'maal' | 'emas'>('penghasilan');
+  const [input1, setInput1] = useState('');
+  const [input2, setInput2] = useState('');
+
+  const HARGA_EMAS = 1400000;
+  const NISHAB_TAHUNAN = 85 * HARGA_EMAS;
+  const NISHAB_BULANAN = Math.round(NISHAB_TAHUNAN / 12);
+
+  const formatRupiah = (val: string) => {
+    const raw = val.replace(/[^0-9]/g, '');
+    return raw ? Number(raw).toLocaleString('id-ID') : '';
+  };
+  const getNum = (val: string) => Number(val.replace(/\./g, '')) || 0;
+
+  let totalZakat = 0;
+  let isWajib = false;
+
+  if (activeTab === 'penghasilan') {
+    const total = getNum(input1) + getNum(input2);
+    isWajib = total >= NISHAB_BULANAN;
+    totalZakat = isWajib ? Math.round(total * 0.025) : 0;
+  } else if (activeTab === 'maal') {
+    const total = getNum(input1) + getNum(input2);
+    isWajib = total >= NISHAB_TAHUNAN;
+    totalZakat = isWajib ? Math.round(total * 0.025) : 0;
+  } else if (activeTab === 'emas') {
+    const berat = Number(input1) || 0;
+    isWajib = berat >= 85;
+    totalZakat = isWajib ? Math.round((berat * HARGA_EMAS) * 0.025) : 0;
+  }
+
+  return (
+    <div className="border border-gray-200 rounded-none bg-white overflow-hidden mt-6">
+      <div className="flex border-b border-gray-200 text-[10px] font-black bg-gray-50/50">
+        <button onClick={() => { setActiveTab('penghasilan'); setInput1(''); setInput2(''); }} className={`flex-1 py-3 text-center rounded-none border-b-2 ${activeTab === 'penghasilan' ? 'text-emerald-600 border-emerald-600 bg-white' : 'text-gray-400 border-transparent'}`}>PENGHASILAN</button>
+        <button onClick={() => { setActiveTab('maal'); setInput1(''); setInput2(''); }} className={`flex-1 py-3 text-center rounded-none border-b-2 ${activeTab === 'maal' ? 'text-emerald-600 border-emerald-600 bg-white' : 'text-gray-400 border-transparent'}`}>MAAL / TABUNGAN</button>
+        <button onClick={() => { setActiveTab('emas'); setInput1(''); setInput2(''); }} className={`flex-1 py-3 text-center rounded-none border-b-2 ${activeTab === 'emas' ? 'text-emerald-600 border-emerald-600 bg-white' : 'text-gray-400 border-transparent'}`}>EMAS SIMPANAN</button>
+      </div>
+      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+        <div className="space-y-3 text-left">
+          {activeTab !== 'emas' ? (
+            <>
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 block mb-1">Pendapatan Utama / Tabungan (Rp)</label>
+                <input type="text" className="w-full border border-gray-200 rounded-none px-3 py-2 text-xs font-bold" placeholder="0" value={input1} onChange={(e) => setInput1(formatRupiah(e.target.value))} />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 block mb-1">Bonus / Aset Lainnya (Rp)</label>
+                <input type="text" className="w-full border border-gray-200 rounded-none px-3 py-2 text-xs font-bold" placeholder="0" value={input2} onChange={(e) => setInput2(formatRupiah(e.target.value))} />
+              </div>
+            </>
+          ) : (
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 block mb-1">Total Berat Emas (Gram)</label>
+              <input type="number" className="w-full border border-gray-200 rounded-none px-3 py-2 text-xs font-bold" placeholder="Contoh: 90" value={input1} onChange={(e) => setInput1(e.target.value)} />
+            </div>
+          )}
+        </div>
+        <div className="bg-gray-50 border border-gray-100 p-4 text-center rounded-none space-y-2">
+          <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">Wajib Zakat Anda</span>
+          <span className="text-xl font-black text-emerald-600 block">Rp {totalZakat.toLocaleString('id-ID')}</span>
+          <button 
+            disabled={totalZakat <= 0} 
+            onClick={() => onApplyAmount(totalZakat.toLocaleString('id-ID'))}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold py-2 rounded-none uppercase tracking-wider disabled:bg-gray-300"
+          >
+            Masukkan ke Form 📥
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===================================================================
+// MAIN DETAIL COMPONENT
+// ===================================================================
 interface FormProps {
   donorName: string;
   setDonorName: (v: string) => void;
@@ -14,7 +95,6 @@ interface FormProps {
   handleAmountChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleDonate: () => Promise<void>;
   submitting: boolean;
-  slug: string; // 🚀 BARU: Diperlukan untuk mendeteksi halaman zakat
 }
 
 const DonationFormFields = ({
@@ -28,38 +108,19 @@ const DonationFormFields = ({
   handleAmountChange,
   handleDonate,
   submitting,
-  slug,
 }: FormProps) => (
   <div className="space-y-4 text-left">
     <div>
       <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nama Donatur</label>
-      <input
-        type="text"
-        placeholder="Hamba Allah (Boleh Kosong)"
-        className="w-full border border-gray-200 rounded-none px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-medium"
-        value={donorName}
-        onChange={(e) => setDonorName(e.target.value)}
-      />
+      <input type="text" placeholder="Hamba Allah (Boleh Kosong)" className="w-full border border-gray-200 rounded-none px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-medium" value={donorName} onChange={(e) => setDonorName(e.target.value)} />
     </div>
-
     <div>
       <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nomor WhatsApp</label>
-      <input
-        type="tel"
-        placeholder="Contoh: 081234567890"
-        className="w-full border border-gray-200 rounded-none px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-medium"
-        value={donorPhone}
-        onChange={(e) => setDonorPhone(e.target.value)}
-      />
+      <input type="tel" placeholder="Contoh: 081234567890" className="w-full border border-gray-200 rounded-none px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-medium" value={donorPhone} onChange={(e) => setDonorPhone(e.target.value)} />
     </div>
-
     <div>
       <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Metode Pembayaran</label>
-      <select
-        className="w-full border border-gray-200 rounded-none px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-bold bg-white cursor-pointer"
-        value={paymentMethod}
-        onChange={(e) => setPaymentMethod(e.target.value)}
-      >
+      <select className="w-full border border-gray-200 rounded-none px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-bold bg-white cursor-pointer" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
         <option value="qris">🟢 QRIS (E-Wallet & M-Banking Instant)</option>
         <option value="bri_va">🏦 BRI Virtual Account</option>
         <option value="bni_va">🏦 BNI Virtual Account</option>
@@ -69,40 +130,15 @@ const DonationFormFields = ({
         <option value="atm_bersama_va">🌐 ATM Bersama (Mandiri, BCA & Bank Lainnya)</option>
       </select>
     </div>
-
     <div>
-      <div className="flex justify-between items-center mb-1.5">
-        <label className="text-[11px] font-bold text-gray-500 block">Nominal Infak / Zakat (Rp)</label>
-        
-        {/* 🚀 JURUS SAKTI UX: Jika masuk lewat link langsung, munculkan link kalkulator otomatis */}
-        {slug === 'zakat-maal-dan-penghasilan' && (
-          <a 
-            href="/kalkulator" 
-            className="text-[10px] text-emerald-600 hover:text-emerald-700 font-black uppercase tracking-wider flex items-center gap-0.5 animate-pulse"
-          >
-            🧮 Hitung Zakat Anda
-          </a>
-        )}
-      </div>
-      
+      <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nominal Dana (Rp)</label>
       <div className="relative flex items-center">
         <span className="absolute left-3.5 text-xs font-bold text-gray-400">Rp</span>
-        <input
-          type="text"
-          placeholder="Minimal 10.000"
-          className="w-full border border-gray-200 rounded-none pl-9 pr-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-emerald-500"
-          value={amount}
-          onChange={handleAmountChange}
-        />
+        <input type="text" placeholder="Minimal 10.000" className="w-full border border-gray-200 rounded-none pl-9 pr-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-emerald-500" value={amount} onChange={handleAmountChange} />
       </div>
     </div>
-
-    <button
-      onClick={handleDonate}
-      disabled={submitting}
-      className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-none transition text-xs uppercase tracking-widest hover:bg-emerald-700 disabled:bg-gray-300 shadow-md shadow-emerald-100"
-    >
-      {submitting ? 'Memproses...' : 'Donasi Sekarang 🚀'}
+    <button onClick={handleDonate} disabled={submitting} className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-none transition text-xs uppercase tracking-widest hover:bg-emerald-700 disabled:bg-gray-300 shadow-md shadow-emerald-100">
+      {submitting ? 'Memproses...' : 'Tunaikan Sekarang 🚀'}
     </button>
   </div>
 );
@@ -122,10 +158,7 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
   useEffect(() => {
     fetch('/api/programs?v=' + Date.now(), {
       cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
-      }
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
     })
       .then((res) => res.json())
       .then((json) => {
@@ -141,35 +174,15 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
       });
   }, [slug]);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const searchParams = new URLSearchParams(window.location.search);
-      const autoAmount = searchParams.get('amount');
-      
-      if (autoAmount) {
-        const rawValue = autoAmount.replace(/[^0-9]/g, '');
-        if (rawValue) {
-          const formatted = Number(rawValue).toLocaleString('id-ID');
-          setAmount(formatted);
-        }
-      }
-    }
-  }, []);
-
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/[^0-9]/g, '');
-    if (!rawValue) {
-      setAmount('');
-      return;
-    }
-    const formatted = Number(rawValue).toLocaleString('id-ID');
-    setAmount(formatted);
+    setAmount(rawValue ? Number(rawValue).toLocaleString('id-ID') : '');
   };
 
   const handleDonate = async () => {
     const cleanAmount = amount.replace(/\./g, '');
     if (!cleanAmount || Number(cleanAmount) < 10000) {
-      alert('Masukkan nominal donasi minimal Rp 10.000 gaes!');
+      alert('Masukkan nominal minimal Rp 10.000 gaes!');
       return;
     }
 
@@ -205,22 +218,6 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
 
   const rawTarget = program.targetAmount || 50000000;
   const percentage = Math.min(Math.round((program.collectedRaw / rawTarget) * 100), 100);
-  const donorList = program.donors || [];
-  const reportList = program.reports || [];
-
-  const formProps = {
-    donorName,
-    setDonorName,
-    donorPhone,
-    setDonorPhone,
-    paymentMethod,
-    setPaymentMethod,
-    amount,
-    handleAmountChange,
-    handleDonate,
-    submitting,
-    slug, // Oper parameter slug ke dalam form fields
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-16 pb-24 lg:pb-8">
@@ -242,31 +239,39 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
 
           <div className="flex border-b border-gray-200 text-xs font-bold text-gray-400 space-x-6 pt-2">
             <button onClick={() => setActiveTab('cerita')} className={`pb-3 focus:outline-none ${activeTab === 'cerita' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'border-b-2 border-transparent'}`}>
-              DETAIL CERITA
+              DETAIL CERITA & KALKULATOR
             </button>
             <button onClick={() => setActiveTab('donatur')} className={`pb-3 focus:outline-none ${activeTab === 'donatur' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'border-b-2 border-transparent'}`}>
-              DONATUR ({donorList.length})
+              DONATUR ({(program.donors || []).length})
             </button>
             <button onClick={() => setActiveTab('laporan')} className={`pb-3 focus:outline-none ${activeTab === 'laporan' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'border-b-2 border-transparent'}`}>
-              LAPORAN PENYALURAN ({reportList.length})
+              LAPORAN PENYALURAN ({(program.reports || []).length})
             </button>
           </div>
 
           <div className="bg-transparent py-2 w-full text-left">
             {activeTab === 'cerita' && (
-              <div className="text-gray-700 text-base leading-relaxed space-y-4 font-normal tracking-wide dynamic-portable-text">
-                {program.description ? (typeof program.description === 'string' ? <p>{program.description}</p> : <PortableText value={program.description} />) : <p className="text-gray-400 italic text-xs">Belum ada cerita detail.</p>}
+              <div className="space-y-6">
+                {/* 🚀 JURUS SAKTI VISUAL: Kalkulator otomatis muncul tertanam jika ini program zakat */}
+                {program.category?.toUpperCase() === 'ZAKAT' && (
+                  <div className="bg-emerald-50/40 p-1 border border-dashed border-emerald-600/30">
+                    <p className="text-[11px] font-black text-emerald-800 uppercase tracking-widest px-4 pt-3">🧮 Simulasi Kalkulator Zakat Digital</p>
+                    <EmbeddedZakatCalculator onApplyAmount={(val) => setAmount(val)} />
+                  </div>
+                )}
+
+                <div className="text-gray-700 text-base leading-relaxed space-y-4 font-normal tracking-wide dynamic-portable-text">
+                  {program.description ? (typeof program.description === 'string' ? <p>{program.description}</p> : <PortableText value={program.description} />) : <p className="text-gray-400 italic text-xs">Belum ada cerita detail.</p>}
+                </div>
               </div>
             )}
 
             {activeTab === 'donatur' && (
               <div className="space-y-3 py-2">
-                {donorList.length > 0 ? [...donorList].reverse().map((donor: any, idx: number) => (
+                {(program.donors || []).length > 0 ? [...program.donors].reverse().map((donor: any, idx: number) => (
                   <div key={idx} className="bg-white border border-gray-100 rounded-none p-4 shadow-sm flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-9 h-9 rounded-none bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">
-                        {(donor.name || 'H').toUpperCase().slice(0, 1)}
-                      </div>
+                      <div className="w-9 h-9 rounded-none bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">{(donor.name || 'H').toUpperCase().slice(0, 1)}</div>
                       <div>
                         <p className="text-xs font-black text-gray-700">{donor.name || 'Hamba Allah'}</p>
                         <p className="text-[10px] text-gray-400 font-medium">{donor.date || 'Baru Saja'}</p>
@@ -282,7 +287,7 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
 
             {activeTab === 'laporan' && (
               <div className="space-y-4 py-2">
-                {reportList.length > 0 ? [...reportList].reverse().map((report: any, idx: number) => (
+                {(program.reports || []).length > 0 ? [...program.reports].reverse().map((report: any, idx: number) => (
                   <div key={idx} className="bg-white border border-gray-100 rounded-none p-5 shadow-sm space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
                       <h4 className="text-sm font-black text-gray-800 uppercase tracking-tight">{report.title || 'Laporan Penyaluran'}</h4>
@@ -291,11 +296,6 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
                     <div className="text-xs text-gray-600 leading-relaxed space-y-2">
                       {typeof report.content === 'string' ? <p>{report.content}</p> : <PortableText value={report.content} />}
                     </div>
-                    {report.image && (
-                      <div className="pt-2 max-w-md">
-                        <img src={report.image} alt="Bukti Implementasi" className="w-full h-auto object-cover border border-gray-100 rounded-none" />
-                      </div>
-                    )}
                   </div>
                 )) : <div className="border border-dashed border-gray-200 p-8 text-center rounded-none bg-white"><p className="text-xs text-gray-400 font-medium">Belum ada pembaruan laporan.</p></div>}
               </div>
@@ -303,30 +303,37 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
           </div>
         </div>
 
+        {/* SIDEBAR FORM (DESKTOP) */}
         <div className="hidden lg:block bg-white rounded-none p-6 shadow-sm border border-gray-100 h-fit lg:sticky lg:top-24">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-left">Dana Terkumpul</p>
-          <p className="text-3xl font-black text-emerald-600 mt-1 text-left">{program.collected || `Rp ${Number(program.collectedRaw).toLocaleString('id-ID')}`}</p>
+          <p className="text-3xl font-black text-emerald-600 mt-1 text-left">{`Rp ${Number(program.collectedRaw || 0).toLocaleString('id-ID')}`}</p>
           <p className="text-[11px] text-gray-400 mt-0.5 font-medium text-left">Target Rp {rawTarget.toLocaleString('id-ID')}</p>
           <div className="w-full bg-gray-100 h-2 rounded-none mt-4 overflow-hidden">
             <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
           </div>
           <div className="mt-6 pt-6 border-t border-gray-100">
-            <DonationFormFields {...formProps} />
+            <DonationFormFields 
+              donorName={donorName} setDonorName={setDonorName}
+              donorPhone={donorPhone} setDonorPhone={setDonorPhone}
+              paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod}
+              amount={amount} handleAmountChange={handleAmountChange}
+              handleDonate={handleDonate} submitting={submitting}
+            />
           </div>
         </div>
 
       </div>
 
+      {/* MOBILE TRIGGER */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 z-40 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-none">
         <div className="flex flex-col text-left">
           <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Terkumpul</span>
-          <span className="text-base font-black text-emerald-600">{program.collected || `Rp ${Number(program.collectedRaw).toLocaleString('id-ID')}`}</span>
+          <span className="text-base font-black text-emerald-600">{`Rp ${Number(program.collectedRaw || 0).toLocaleString('id-ID')}`}</span>
         </div>
-        <button onClick={() => setIsMobileFormOpen(true)} className="bg-emerald-600 text-white text-xs font-black uppercase tracking-widest px-6 py-3.5 rounded-none">
-          Donasi Sekarang 🚀 
-        </button>
+        <button onClick={() => setIsMobileFormOpen(true)} className="bg-emerald-600 text-white text-xs font-black uppercase tracking-widest px-6 py-3.5 rounded-none">Donasi Sekarang 🚀</button>
       </div>
 
+      {/* MOBILE POPUP FORM */}
       {isMobileFormOpen && (
         <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end">
           <div className="absolute inset-0" onClick={() => setIsMobileFormOpen(false)} />
@@ -336,7 +343,13 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
               <h3 className="text-sm font-black uppercase tracking-wide">Isi Data Infak</h3>
               <button onClick={() => setIsMobileFormOpen(false)} className="w-7 h-7 bg-gray-50 rounded-none text-gray-400 text-xs font-bold flex items-center justify-center border border-gray-100">✕</button>
             </div>
-            <DonationFormFields {...formProps} />
+            <DonationFormFields 
+              donorName={donorName} setDonorName={setDonorName}
+              donorPhone={donorPhone} setDonorPhone={setDonorPhone}
+              paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod}
+              amount={amount} handleAmountChange={handleAmountChange}
+              handleDonate={handleDonate} submitting={submitting}
+            />
           </div>
         </div>
       )}
