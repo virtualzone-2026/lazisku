@@ -324,13 +324,39 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
 
       </div>
 
-      {/* MOBILE TRIGGER */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 z-40 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-none">
-        <div className="flex flex-col text-left">
-          <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Terkumpul</span>
-          <span className="text-base font-black text-emerald-600">{`Rp ${Number(program.collectedRaw || 0).toLocaleString('id-ID')}`}</span>
+      {/* ===================================================================
+          🚀 FIXED MOBILE TRIGGER: Susunan Vertikal, Teks Target, Tombol Merah
+          =================================================================== */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 z-40 flex flex-col space-y-3 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] rounded-none">
+        
+        {/* Info Nominal Sekarang Berada di Atas Sejajar Kiri-Kanan */}
+        <div className="flex justify-between items-end text-left w-full px-0.5">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Terkumpul</span>
+            <span className="text-lg font-black text-emerald-600 leading-tight">
+              {`Rp ${Number(program.collectedRaw || 0).toLocaleString('id-ID')}`}
+            </span>
+          </div>
+          <div className="flex flex-col text-right">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Target Sasaran</span>
+            <span className="text-xs font-bold text-gray-500 leading-tight">
+              {`Rp ${rawTarget.toLocaleString('id-ID')}`}
+            </span>
+          </div>
         </div>
-        <button onClick={() => setIsMobileFormOpen(true)} className="bg-emerald-600 text-white text-xs font-black uppercase tracking-widest px-6 py-3.5 rounded-none">Donasi Sekarang 🚀</button>
+
+        {/* Bar progress mini tambahan untuk memperkuat visual pencapaian di mobile */}
+        <div className="w-full bg-gray-100 h-1 rounded-none overflow-hidden">
+          <div className="bg-emerald-500 h-full" style={{ width: `${percentage}%` }}></div>
+        </div>
+
+        {/* Tombol Merah Mencolok Menempati Lebar Penuh di Bagian Bawah */}
+        <button 
+          onClick={() => setIsMobileFormOpen(true)} 
+          className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-widest py-3.5 rounded-none shadow-md shadow-red-100 transition-colors"
+        >
+          Donasi Sekarang 🚀
+        </button>
       </div>
 
       {/* MOBILE POPUP FORM */}
