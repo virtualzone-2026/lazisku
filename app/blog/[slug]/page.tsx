@@ -6,68 +6,76 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-// ===================================================================
-// 🚀 SERVER-SIDE SEO: Menembak Data Thumbnail Dinamis ke WhatsApp/Medsos
-// ===================================================================
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
 
+  // 1. Definisikan fallback gambar utama yang PASTI VALID & RINGAN
+  const fallbackImage = 'https://lazisku.com/images/banner-utama.png';
+  let imageUrl = fallbackImage;
+  let articleTitle = 'Kabar Berita | LAZIS Khoiro Ummah';
+  let articleExcerpt = 'Laporan transparansi penyaluran donasi terverifikasi di lazisku.com.';
+
   try {
-    // Mengambil data spesifik berita langsung dari endpoint internal
     const res = await fetch(`https://lazisku.com/api/news/${slug}`, {
-      cache: 'no-store' // Wajib no-store agar data real-time dari Sanity
+      cache: 'no-store'
     });
     const json = await res.json();
     const article = json?.data?.article;
 
-    if (!article) {
-      return { title: 'Artikel Tidak Ditemukan | LAZIS Khoiro Ummah' };
+    if (article) {
+      if (article.title) articleTitle = article.title;
+      if (article.excerpt) articleExcerpt = article.excerpt;
+
+      // 🚀 DETEKSI AKURAT: Antisipasi jika di API Anda nama propertinya berbeda (imageUrl / image)
+      const rawImage = article.imageUrl || article.image;
+
+      if (rawImage && typeof rawImage === 'string') {
+        // Jika dari API sudah berupa link absolut CDN Sanity (dimulai http)
+        if (rawImage.startsWith('http')) {
+          imageUrl = rawImage;
+        } else {
+          // Jika jalurnya masih relatif, gabungkan dengan domain utama
+          imageUrl = `https://lazisku.com${rawImage.startsWith('/') ? '' : '/'}${rawImage}`;
+        }
+      }
     }
-
-    // Menggunakan URL gambar artikel dari Sanity, jika kosong fallback ke banner utama
-    const imageUrl = article.imageUrl || 'https://lazisku.com/images/banner-utama.png';
-
-    return {
-      title: article.title,
-      description: article.excerpt || `Baca kabar berita terbaru dari LAZIS Khoiro Ummah mengenai ${article.title}.`,
-      alternates: {
-        canonical: `/blog/${slug}`,
-      },
-      openGraph: {
-        title: article.title,
-        description: article.excerpt || 'Laporan transparansi penyaluran donasi terverifikasi di lazisku.com.',
-        url: `https://lazisku.com/blog/${slug}`,
-        siteName: 'LAZIS Khoiro Ummah',
-        locale: 'id_ID',
-        type: 'article',
-        images: [
-          {
-            url: imageUrl, // 🔗 URL Gambar Absolut yang dibaca oleh bot WhatsApp
-            width: 1200,
-            height: 630,
-            type: 'image/png',
-            alt: article.title,
-          },
-        ],
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: article.title,
-        description: article.excerpt,
-        images: [imageUrl],
-      },
-    };
   } catch (error) {
-    return { title: 'Kabar Berita | LAZIS Khoiro Ummah' };
+    console.error('Metadata patch error:', error);
   }
+
+  return {
+    title: articleTitle,
+    description: articleExcerpt,
+    alternates: {
+      canonical: `/blog/${slug}`,
+    },
+    openGraph: {
+      title: articleTitle,
+      description: articleExcerpt,
+      url: `https://lazisku.com/blog/${slug}`,
+      siteName: 'LAZIS Khoiro Ummah',
+      locale: 'id_ID',
+      type: 'article',
+      images: [
+        {
+          url: imageUrl, // 🟢 Menggunakan URL terverifikasi
+          width: 1200,
+          height: 630,
+          type: 'image/png',
+          alt: articleTitle,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: articleTitle,
+      description: articleExcerpt,
+      images: [imageUrl],
+    },
+  };
 }
 
-// ===================================================================
-// 🖥️ SERVER COMPONENT UTAMA
-// ===================================================================
 export default async function BlogPage({ params }: Props) {
   const { slug } = await params;
-  
-  // Mengirim slug ke komponen Client untuk memproses UI rounded-none
   return <BlogDetailClient slug={slug} />;
 }
