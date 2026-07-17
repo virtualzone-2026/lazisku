@@ -27,7 +27,6 @@ export async function POST(request: Request) {
     console.log(JSON.stringify(payload, null, 2));
     console.log("======================================");
 
-    // 🚀 FIXED SESUAI PEDOMAN (BAGIAN D): Pakasir mengirimkan data langsung di root objek body
     const amount = payload.amount;
     const order_id = payload.order_id;
     const status = payload.status; // Berupa string "completed" jika sukses
@@ -134,16 +133,27 @@ export async function POST(request: Request) {
       // 🚀 5. OTOMATISASI KIRIM PESAN TERIMA KASIH WA VIA FONNTE API
       // ===================================================================
       if (donorPhoneFromForm !== '') {
+        // Pembersihan format nomor telepon untuk Fonnte (menghapus spasi, strip, dan leading zero)
+        let formattedPhone = donorPhoneFromForm.replace(/[^0-9]/g, '');
+        if (formattedPhone.startsWith('0')) {
+          formattedPhone = '62' + formattedPhone.slice(1);
+        }
+
+        // 🚀 DINAMISASI LABEL: Ubah kata "Infak" menjadi "Zakat" jika programnya bermuatan Zakat
+        const isZakatProgram = programSlug.includes('zakat');
+        const labelNominal = isZakatProgram ? 'Nominal Zakat' : 'Nominal Infak';
+        const kataSapaan = isZakatProgram ? 'Muzakki' : 'Bapak/Ibu/Sdr';
+
         const messageText = 
-          `*Terima Kasih Atas Donasi Anda* 🙏🌟\n\n` +
+          `*Terima Kasih Atas Kebaikan Anda* 🙏🌟\n\n` +
           `Assalamualaikum wr. wb.,\n` +
-          `Jazakumullah Khairan Katsiran kepada Bapak/Ibu/Sdr *${donorNameFromForm}*.\n\n` +
-          `Alhamdulillah, pembayaran donasi Anda telah kami terima dengan rincian berikut:\n` +
+          `Jazakumullah Khairan Katsiran kepada ${kataSapaan} *${donorNameFromForm}*.\n\n` +
+          `Alhamdulillah, pembayaran dana amanah Anda telah kami terima dengan rincian berikut:\n` +
           `• *ID Transaksi:* ${cleanOrderId}\n` +
-          `• *Nominal Infak:* Rp ${donationAmount.toLocaleString('id-ID')}\n` +
+          `• *${labelNominal}:* Rp ${donationAmount.toLocaleString('id-ID')}\n` +
           `• *Metode:* ${paymentMethodUsed}\n` +
           `• *Program:* ${finalProgram.title}\n\n` +
-          `Semoga infak yang Anda keluarkan menjadi pembersih harta, pelipat ganda pahala, serta mengalirkan keberkahan yang tiada putus untuk Anda sekeluarga. Aamiin Yaa Rabbal 'Aalamiin.\n\n` +
+          `Semoga dana yang Anda tunaikan menjadi pembersih harta, pelipat ganda pahala, serta mengalirkan keberkahan yang tiada putus untuk Anda sekeluarga. Aamiin Yaa Rabbal 'Aalamiin.\n\n` +
           `Salam hangat,\n` +
           `*LAZIS Khoiro Ummah* (lazisku.com)`;
 
@@ -151,18 +161,17 @@ export async function POST(request: Request) {
           const fonnteResponse = await fetch('https://api.fonnte.com/send', {
             method: 'POST',
             headers: {
-              'Authorization': process.env.FONNTE_TOKEN || '', // Membaca token dari environment variable server Anda
+              'Authorization': process.env.FONNTE_TOKEN || '', 
             },
             body: new URLSearchParams({
-              target: donorPhoneFromForm,
+              target: formattedPhone, // Menggunakan nomor yang sudah berformat internasional standar
               message: messageText,
-              countryCode: '62',
             }),
           });
 
           const fonnteData = await fonnteResponse.json();
           if (fonnteData.status) {
-            console.log(`📱 Notifikasi WA sukses terkirim lewat Fonnte ke: ${donorPhoneFromForm}`);
+            console.log(`📱 Notifikasi WA sukses terkirim lewat Fonnte ke: ${formattedPhone}`);
           } else {
             console.error(`❌ Fonnte API merespons gagal:`, fonnteData.reason || 'Penyebab tidak diketahui');
           }
