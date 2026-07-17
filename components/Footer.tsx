@@ -60,13 +60,13 @@ export default function Footer() {
                 <Link href="/kalkulator" className="hover:text-emerald-600 transition-colors">Kalkulator Zakat</Link>
               </li>
               <li>
-                <Link href="/program?category=pendidikan" className="hover:text-emerald-600 transition-colors">Pendidikan</Link>
+                <Link href="/blog" className="hover:text-emerald-600 transition-colors">Berita dan Artikel</Link>
               </li>
               <li>
-                <Link href="/program?category=pembangunan" className="hover:text-emerald-600 transition-colors">Wakaf Qur'an</Link>
+                <Link href="https://jasaqiqah.my.id" className="hover:text-emerald-600 transition-colors">Jasa Aqiqah</Link>
               </li>
               <li>
-                <Link href="/program?category=bencana" className="hover:text-emerald-600 transition-colors">Tanggap Bencana</Link>
+                <Link href="/peta-situs" className="hover:text-emerald-600 transition-colors">Peta Situs</Link>
               </li>
             </ul>
           </div>
