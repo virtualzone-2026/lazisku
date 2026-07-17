@@ -1,6 +1,7 @@
 // app/page.tsx
 import React from 'react';
 import Hero from '@/components/Hero';
+import TotalAccumulationWidget from '@/components/TotalAccumulationWidget'; // 🚀 BARU: Mengimpor widget akumulasi real-time
 import Campaign from '@/components/Campaign';
 import News from '@/components/News';
 
@@ -14,7 +15,10 @@ export default function HomePage() {
       {/* 1. Hero Section (Layar Utama Atas dengan Call to Action) */}
       <Hero />
       
-      {/* 2. Container Area Konten Utama */}
+      {/* 2. 🚀 BARU: Widget Akumulasi Dana Real-Time diletakkan strategis di bawah Hero */}
+      <TotalAccumulationWidget />
+      
+      {/* 3. Container Area Konten Utama */}
       {/* 🚀 FIXED: Menyelaraskan md:px-12 menjadi md:px-16 agar presisi lurus bergaris dengan Header, Footer, dan halaman list berita */}
       <div className="min-h-screen bg-gray-50 px-4 md:px-16 py-12">
         <div className="max-w-5xl mx-auto space-y-16">
