@@ -1,3 +1,4 @@
+// schemas/program.ts
 import { defineField, defineType } from 'sanity';
 
 export default defineType({
@@ -80,49 +81,6 @@ export default defineType({
             { name: 'name', type: 'string', title: 'Nama Donatur' },
             { name: 'amount', type: 'number', title: 'Nominal Donasi' },
             { name: 'date', type: 'string', title: 'Tanggal Donasi' },
-          ],
-        },
-      ],
-    }),
-    
-    // ===================================================================
-    // 🚀 FIXED: MENAMBAHKAN WADAH ARRAY LAPORAN PENYALURAN (IMPLEMENTASI DANA)
-    // ===================================================================
-    defineField({
-      name: 'reports',
-      title: 'Laporan Penyaluran / Implementasi Program',
-      type: 'array',
-      description: 'Input rincian penyaluran dana berkala dan bukti dokumentasi rilisan dari amil lapangan.',
-      of: [
-        {
-          type: 'object',
-          title: 'Item Laporan',
-          fields: [
-            { 
-              name: 'title', 
-              type: 'string', 
-              title: 'Judul Aktivitas Laporan',
-              description: 'Contoh: Pembelian Material Semen Tahap Belanja Utama'
-            },
-            { 
-              name: 'date', 
-              type: 'string', 
-              title: 'Tanggal Penyaluran',
-              description: 'Contoh: 8 Juli 2026'
-            },
-            { 
-              name: 'content', 
-              type: 'array', 
-              title: 'Detail Catatan Implementasi',
-              of: [{ type: 'block' }],
-              description: 'Tulis deskripsi detail penyaluran amanah secara transparan di sini.'
-            },
-            { 
-              name: 'image', 
-              type: 'image', 
-              title: 'Foto / Bukti Dokumentasi Lapangan',
-              options: { hotspot: true }
-            },
           ],
         },
       ],
