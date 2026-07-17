@@ -37,7 +37,7 @@ export default function TotalAccumulationWidget() {
             totalPrograms: json.data.length,
           });
         }
-        setLoading(false)
+        setLoading(false);
       })
       .catch((err) => {
         console.error('Fetch accumulation statistics error:', err);
@@ -48,7 +48,7 @@ export default function TotalAccumulationWidget() {
   if (loading) {
     return (
       <div className="w-full max-w-5xl mx-auto px-4 py-6">
-        <div className="bg-white border border-gray-200 rounded-none p-6 text-center text-xs text-gray-400 font-medium tracking-wider">
+        <div className="text-center text-xs text-gray-400 font-medium tracking-wider">
           MEMUAT DATA AKUMULASI DANA AMANAH...
         </div>
       </div>
@@ -56,39 +56,51 @@ export default function TotalAccumulationWidget() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-4">
-      {/* 🚀 FIXED STYLE: Struktur grid berdesain flat dengan sudut siku tajam (rounded-none) */}
-      <div className="bg-white border border-gray-200 rounded-none shadow-sm grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+    <div className="w-full max-w-5xl mx-auto px-4 py-2">
+      {/* 🚀 FIXED STYLE: Kotak luar, border, background, dan shadow dibuang total agar menyatu bersih */}
+      <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-200/80">
         
         {/* KOTAK 1: TOTAL DANA TERKUMPUL */}
         <div className="p-6 flex flex-col items-center justify-center text-center space-y-1">
-          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
+          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
             <span>💰</span> Total Dana Disalurkan
           </span>
-          <span className="text-2xl md:text-3xl font-black text-emerald-600 tracking-tight">
-            Rp {stats.totalCollected.toLocaleString('id-ID')}
-          </span>
+          {stats.totalCollected > 0 ? (
+            <span className="text-2xl md:text-3xl font-black text-emerald-600 tracking-tight">
+              Rp {stats.totalCollected.toLocaleString('id-ID')}
+            </span>
+          ) : (
+            <span className="text-sm md:text-base font-bold text-emerald-600 uppercase tracking-wider block py-1.5">
+              🌱 Siap Disalurkan
+            </span>
+          )}
           <span className="text-[10px] text-gray-400 font-semibold">
             Real-time via QRIS & VA Pakasir
           </span>
         </div>
 
-        {/* KOTAK 2: TOTAL DONATUR / HAMBA ALLAH */}
+        {/* KOTAK 2: TOTAL JUMLAH DONATUR */}
         <div className="p-6 flex flex-col items-center justify-center text-center space-y-1">
-          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
-            <span>🤝</span> Hamba Allah & Donatur
+          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+            <span>🤝</span> Jumlah Donatur
           </span>
-          <span className="text-2xl md:text-3xl font-black text-gray-800 tracking-tight">
-            {stats.totalDonors.toLocaleString('id-ID')} <span className="text-xs font-bold text-gray-400">Jiwa</span>
-          </span>
+          {stats.totalDonors > 0 ? (
+            <span className="text-2xl md:text-3xl font-black text-gray-800 tracking-tight">
+              {stats.totalDonors.toLocaleString('id-ID')} <span className="text-xs font-bold text-gray-400">Jiwa</span>
+            </span>
+          ) : (
+            <span className="text-sm md:text-base font-bold text-emerald-600 uppercase tracking-wider block py-1.5">
+              🤝 Jadilah Yang Pertama
+            </span>
+          )}
           <span className="text-[10px] text-gray-400 font-semibold">
-            Terverifikasi Sistem Amanah
+            {stats.totalDonors > 0 ? 'Terverifikasi Sistem Amanah' : 'Mari Mulai Aliran Pahala'}
           </span>
         </div>
 
         {/* KOTAK 3: TOTAL PROGRAM AGREGAT */}
         <div className="p-6 flex flex-col items-center justify-center text-center space-y-1">
-          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
+          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
             <span>📦</span> Program Kebaikan Aktif
           </span>
           <span className="text-2xl md:text-3xl font-black text-gray-800 tracking-tight">
