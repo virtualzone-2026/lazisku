@@ -7,14 +7,14 @@ interface Props {
 }
 
 // ===================================================================
-// 🚀 DYNAMIC METADATA: Menembak Thumbnail Unik Program ke WhatsApp/Medsos
+// 🚀 DYNAMIC METADATA: Menembak Thumbnail & Deskripsi Unik Program ke Medsos
 // ===================================================================
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const fallbackImage = 'https://lazisku.com/images/banner-utama.png';
   
   let campaignTitle = 'Program Donasi Amanah | LAZIS Khoiro Ummah';
-  let campaignDesc = 'Salurkan infak, sedekah, dan zakat Anda secara instan dan amanah melalui lazisku.com.';
+  let campaignDesc = ''; // Mulai dengan string kosong agar logika ekstraksi berjalan
   let imageUrl = fallbackImage;
 
   try {
@@ -29,22 +29,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       if (found) {
         if (found.title) campaignTitle = found.title;
         
-        // Buat deskripsi ringkas dari text murni atau fallback
-        if (found.description && typeof found.description === 'string') {
-          campaignDesc = found.description.slice(0, 160);
-        } else {
-          campaignDesc = `Mari bantu program "${found.title}" bersama LAZIS Khoiro Ummah. Salurkan kepedulian Anda secara transparan via QRIS & VA.`;
+        // ===================================================================
+        // 🚀 FIXED LOGIC: PARSING CUPLIKAN DONASI DARI STRING ATAU PORTABLETEXT
+        // ===================================================================
+        if (found.description) {
+          // Kasus A: Jika description berupa text / string murni
+          if (typeof found.description === 'string') {
+            campaignDesc = found.description.slice(0, 150) + '...';
+          } 
+          // Kasus B: Jika description berupa array block PortableText dari Sanity
+          else if (Array.isArray(found.description)) {
+            const plainText = found.description
+              .filter((block: any) => block._type === 'block' && block.children)
+              .map((block: any) => block.children.map((child: any) => child.text).join(''))
+              .join(' ');
+            
+            campaignDesc = plainText ? plainText.slice(0, 150) + '...' : '';
+          }
+        }
+
+        // Fallback cadangan jika deskripsi program kosong dari CMS Studio
+        if (!campaignDesc) {
+          campaignDesc = `Mari bantu program "${campaignTitle}" bersama LAZIS Khoiro Ummah. Salurkan kepedulian Anda secara transparan via QRIS & VA.`;
         }
 
         // Ambil properti gambar utama program dari backend/Sanity Anda
         const rawImage = found.image;
         if (rawImage && typeof rawImage === 'string') {
-          imageUrl = rawImage.startsWith('http') ? rawImage : `https://lazisku.com${rawImage}`;
+          imageUrl = rawImage.startsWith('http') ? rawImage : `https://lazisku.com${rawImage.startsWith('/') ? '' : '/'}${rawImage}`;
         }
       }
     }
   } catch (error) {
     console.error('Fetch campaign metadata failed:', error);
+    campaignDesc = 'Salurkan infak, sedekah, dan zakat Anda secara instan dan amanah melalui lazisku.com.';
   }
 
   return {
@@ -62,7 +80,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: 'website',
       images: [
         {
-          url: imageUrl, // 🟢 THUMBNAIL DINAMIS DARI PROGRAM, BUKAN HOMEPAGE
+          url: imageUrl, // 🟢 THUMBNAIL DINAMIS DARI PROGRAM
           width: 1200,
           height: 630,
           type: 'image/png',
