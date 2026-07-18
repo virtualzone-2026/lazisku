@@ -6,11 +6,12 @@ export const dynamic = 'force-dynamic';
 
 // 🚀 MEMBACA KREDENSIAL LANGSUNG DARI FILE .ENV.LOCAL ANDA SECARA VALID
 const client = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '19a8r8sr', // ID Sanity disesuaikan dengan skema LAZISKU
+  // FIXED: Fallback disesuaikan dengan ID asli di file .env.local kamu ("61d8vnuq")
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '61d8vnuq', 
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   useCdn: false,
   apiVersion: '2024-01-01',
-  token: process.env.SANITY_WRITE_TOKEN, // ➔ Menggunakan Token Editor dari env Anda
+  token: process.env.SANITY_WRITE_TOKEN, // Menggunakan Token Editor dari env Anda
 });
 
 export async function POST(request: Request) {
@@ -28,10 +29,10 @@ export async function POST(request: Request) {
     const rawAmount = body.amount || body.nominal || 0;
     const cleanAmountNumber = Number(String(rawAmount).replace(/\D/g, ''));
 
-    // Validasi dasar transaksi minimal sesuai pedoman Pakasir
-    if (!slug || !cleanAmountNumber || cleanAmountNumber < 10000) {
+    // 🚀 FIXED: Validasi dasar transaksi diturunkan menjadi Rp 1.000 agar sinkron dengan Pakasir QRIS
+    if (!slug || !cleanAmountNumber || cleanAmountNumber < 1000) {
       return NextResponse.json(
-        { success: false, error: 'Data tidak valid. Minimal donasi adalah Rp 10.000' },
+        { success: false, error: 'Data tidak valid. Minimal donasi adalah Rp 1.000' },
         { status: 400 }
       );
     }
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
     const prefix = cleanSlug.includes('BERAS') ? 'BERAS' : cleanSlug.includes('MUALAF') ? 'MUALAF' : 'SUBUH';
     const generatedOrderId = `INV-${prefix}-${Date.now()}`;
 
-    // 🚀 FIXED LENGKAP: Menggunakan slug 'lazis-khoiro-ummah' sesuai berkas image_eba182.png
+    // Menggunakan slug 'lazis-khoiro-ummah' sesuai berkas image_eba182.png
     const pakasirProjectSlug = process.env.PAKASIR_PROJECT || process.env.PAKASIR_SLUG || 'lazis-khoiro-ummah';
     const pakasirApiKey = process.env.PAKASIR_API_KEY || '';
 
@@ -92,7 +93,7 @@ export async function POST(request: Request) {
     // Gunakan payment_url bawaan dari objek gateway jika tersedia, atau arahkan ke fallback link web checkout
     const paymentUrl = pakasirData.payment.payment_url || fallbackUrlWeb;
 
-    // 🚀 MENULIS DATA TRANSAKSI LENGKAP KE SANITY
+    // 🚀 MENULIS DATA TRANSAKSI LENGKAP KE SANITY (Menggunakan Client Internal Ber-token Write)
     await client.create({
       _type: 'donationTransaction',
       orderId: String(generatedOrderId),

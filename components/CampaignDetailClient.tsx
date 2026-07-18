@@ -134,7 +134,8 @@ const DonationFormFields = ({
       <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nominal Dana (Rp)</label>
       <div className="relative flex items-center">
         <span className="absolute left-3.5 text-xs font-bold text-gray-400">Rp</span>
-        <input type="text" placeholder="Minimal 10.000" className="w-full border border-gray-200 rounded-none pl-9 pr-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-emerald-500" value={amount} onChange={handleAmountChange} />
+        {/* 🚀 FIXED PLACEHOLDER: Diubah menjadi Minimal 1.000 */}
+        <input type="text" placeholder="Minimal 1.000" className="w-full border border-gray-200 rounded-none pl-9 pr-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-emerald-500" value={amount} onChange={handleAmountChange} />
       </div>
     </div>
     <button onClick={handleDonate} disabled={submitting} className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-none transition text-xs uppercase tracking-widest hover:bg-emerald-700 disabled:bg-gray-300 shadow-md shadow-emerald-100">
@@ -185,8 +186,9 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
 
   const handleDonate = async () => {
     const cleanAmount = amount.replace(/\./g, '');
-    if (!cleanAmount || Number(cleanAmount) < 10000) {
-      alert('Masukkan nominal minimal Rp 10.000 gaes!');
+    // 🚀 FIXED VALIDATION: Batas minimal diturunkan dari 10000 menjadi 1000 rupiah
+    if (!cleanAmount || Number(cleanAmount) < 1000) {
+      alert('Masukkan nominal minimal Rp 1.000 gaes!');
       return;
     }
 
@@ -231,7 +233,6 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
         body: JSON.stringify({
           name: fundraiserData.name,
           phone: fundraiserData.phone,
-          // 🚀 FIXED: Fallback komprehensif mengamankan pencarian field ID terlepas dari pemetaan REST API
           programId: program._id || program.id,
         }),
       });
@@ -248,7 +249,7 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
       console.error('🔥 Error submit fundraiser:', err);
       alert('Terjadi gangguan jaringan saat memproses pendaftaran.');
     } finally {
-      setFundraiserSubmitting(false);
+      setSubmitting(false);
     }
   };
 
