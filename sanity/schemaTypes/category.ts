@@ -1,3 +1,4 @@
+// schemas/category.ts
 import { defineField, defineType } from 'sanity';
 
 export default defineType({
@@ -18,7 +19,13 @@ export default defineType({
       options: {
         source: 'title',
         maxLength: 96,
-        slugify: (input) => input.toLowerCase().replace(/\s+/g, '-').slice(0, 96),
+        // 🚀 FIXED: Membersihkan karakter khusus selain huruf, angka, dan strip (-) agar URL SEO-friendly
+        slugify: (input) => 
+          input
+            .toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9-]/g, '')
+            .slice(0, 96),
       },
       validation: (Rule) => Rule.required().error('Slug kategori wajib digenerate'),
     }),
