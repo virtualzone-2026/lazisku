@@ -1,19 +1,9 @@
 // app/api/webhook/pakasir/route.ts
 import { NextResponse } from 'next/server';
-import { createClient } from '@sanity/client';
+// 🚀 FIXED: Mengimpor client internal anti-boncos yang ditujukan khusus untuk manipulasi database (write)
+import { clientInternal as client } from '@/lib/sanity';
 
 export const dynamic = 'force-dynamic';
-
-// ===================================================================
-// SANITY CLIENT WRITE (Menggunakan Token Hardcode Editor Anda)
-// ===================================================================
-const client = createClient({
-  projectId: '19a8r8sr', 
-  dataset: 'production',
-  useCdn: false, 
-  apiVersion: '2024-01-01',
-  token: 'skG4ics36bFQorNtT6FkLP5F9o8JXwb5uc4Hf4qaMNT7RMZbRvbWb4oti8wtFcGzoQM4DL3Fgo06PRnacLU4FGkzKi0Z0TQM1JQGS5Cqbj5KTXjQXYSrA7sdy6oPhkVJX3Co2ZcncmHaFRzSlqsbbRmFNC0T2vrqJe2iCx89Uerby8ezsl08', 
-});
 
 // ===================================================================
 // WEBHOOK PAKASIR AUTOMATION + FONNTE NOTIFICATION
@@ -98,7 +88,7 @@ export async function POST(request: Request) {
     // Pastikan nominal diambil dengan benar (prioritas dari callback Pakasir, fallback dari record transaksi)
     const donationAmount = Number(amount) || Number(pendingTransaction?.amount) || 0;
     
-    // Format tanggal Indonesia (contoh: 8 Juli 2026)
+    // Format tanggal Indonesia
     const currentDate = new Date().toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
@@ -139,7 +129,7 @@ export async function POST(request: Request) {
           formattedPhone = '62' + formattedPhone.slice(1);
         }
 
-        // 🚀 DINAMISASI LABEL: Ubah kata "Infak" menjadi "Zakat" jika programnya bermuatan Zakat
+        // DINAMISASI LABEL: Ubah kata "Infak" menjadi "Zakat" jika programnya bermuatan Zakat
         const isZakatProgram = programSlug.includes('zakat');
         const labelNominal = isZakatProgram ? 'Nominal Zakat' : 'Nominal Infak';
         const kataSapaan = isZakatProgram ? 'Muzakki' : 'Bapak/Ibu/Sdr';
@@ -164,7 +154,7 @@ export async function POST(request: Request) {
               'Authorization': process.env.FONNTE_TOKEN || '', 
             },
             body: new URLSearchParams({
-              target: formattedPhone, // Menggunakan nomor yang sudah berformat internasional standar
+              target: formattedPhone,
               message: messageText,
             }),
           });
