@@ -89,6 +89,37 @@ export default function FundraiserStatsPage() {
               </div>
             </div>
 
+            {/* 🚀 TERPASANG: Blok Kotak Tautan Afiliasi Otomatis (Sudut Siku) */}
+            <div className="mt-4 pt-2 text-left space-y-2">
+              <label className="text-[10px] font-bold text-purple-600 uppercase tracking-wider block">🔗 Tautan Afiliasi Anda</label>
+              <div className="flex rounded-none overflow-hidden border border-gray-300">
+                <input 
+                  type="text" 
+                  readOnly 
+                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/campaign/${stats.profile.programSlug}?ref=${phone.replace(/[^0-9]/g, '')}`}
+                  className="flex-1 bg-gray-50 px-3 py-2 text-xs font-mono text-gray-600 focus:outline-none"
+                  id="affiliate-link-input"
+                />
+                <button 
+                  type="button"
+                  onClick={() => {
+                    const copyText = document.getElementById('affiliate-link-input') as HTMLInputElement;
+                    if (copyText) {
+                      copyText.select();
+                      navigator.clipboard.writeText(copyText.value);
+                      alert('Link afiliasi berhasil disalin! Silakan sebarkan ke jaringan Anda.');
+                    }
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 text-xs uppercase tracking-wider transition"
+                >
+                  Salin
+                </button>
+              </div>
+              <p className="text-[9px] text-gray-400 font-medium leading-relaxed">
+                *Sebarkan link di atas ke Facebook, WhatsApp, atau Instagram. Setiap donasi sukses yang masuk melalui link ini akan otomatis tercatat atas nama Anda.
+              </p>
+            </div>
+
             {/* Riwayat Singkat */}
             <div className="space-y-2">
               <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Riwayat Dukungan Transaksi</h3>
