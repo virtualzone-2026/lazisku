@@ -143,7 +143,7 @@ const DonationFormFields = ({
   </div>
 );
 
-export default function CampaignDetailClient({ slug }: { slug: string }) {
+export default function CampaignDetailClient({ slug, referral }: { slug: string; referral: string | null }) {
   const [program, setProgram] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [amount, setAmount] = useState('');
@@ -155,10 +155,14 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
   const [paymentMethod, setPaymentMethod] = useState('qris');
   const [activeTab, setActiveTab] = useState<'cerita' | 'donatur' | 'laporan'>('cerita');
 
+  // --- STATE UNTUK MODAL REGISTRASI FUNDRAISER ---
+  const [isFundraiserModalOpen, setIsFundraiserModalOpen] = useState(false);
+  const [fundraiserData, setFundraiserData] = useState({ name: '', phone: '' });
+  const [fundraiserSubmitting, setFundraiserSubmitting] = useState(false);
+
   useEffect(() => {
-    fetch('/api/programs?v=' + Date.now(), {
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    fetch('/api/programs', {
+      cache: 'default'
     })
       .then((res) => res.json())
       .then((json) => {
@@ -197,6 +201,7 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
           donorName: donorName.trim() || 'Hamba Allah',
           donorPhone: donorPhone.trim(), 
           paymentMethod: paymentMethod,
+          referral: referral,
         }),
       });
 
@@ -213,6 +218,40 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
     }
   };
 
+  // --- HANDLER SUBMIT PENDAFTARAN FUNDRAISER ---
+  const handleRegisterFundraiser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fundraiserData.name || !fundraiserData.phone) return alert('Mohon isi nama dan nomor WhatsApp Anda.');
+
+    setFundraiserSubmitting(true);
+    try {
+      const res = await fetch('/api/fundraiser', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: fundraiserData.name,
+          phone: fundraiserData.phone,
+          // 🚀 FIXED: Fallback komprehensif mengamankan pencarian field ID terlepas dari pemetaan REST API
+          programId: program._id || program.id,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        alert('Pendaftaran berhasil! Silakan periksa pesan konfirmasi verifikasi yang dikirim via WhatsApp.');
+        setFundraiserData({ name: '', phone: '' });
+        setIsFundraiserModalOpen(false);
+      } else {
+        alert(`Gagal mengirim pengajuan: ${json.message}`);
+      }
+    } catch (err) {
+      console.error('🔥 Error submit fundraiser:', err);
+      alert('Terjadi gangguan jaringan saat memproses pendaftaran.');
+    } finally {
+      setFundraiserSubmitting(false);
+    }
+  };
+
   if (loading) return <div className="text-center py-20 text-gray-500 font-medium">Memuat detail program...</div>;
   if (!program) return <div className="text-center py-20 text-red-500 font-medium">Program tidak ditemukan.</div>;
 
@@ -220,7 +259,7 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
   const percentage = Math.min(Math.round((program.collectedRaw / rawTarget) * 100), 100);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-16 pb-24 lg:pb-8">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-16 pb-36 lg:pb-8">
       <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         <div className="lg:col-span-2 space-y-5 flex flex-col">
@@ -252,7 +291,6 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
           <div className="bg-transparent py-2 w-full text-left">
             {activeTab === 'cerita' && (
               <div className="space-y-6">
-                {/* 🚀 JURUS SAKTI VISUAL: Kalkulator otomatis muncul tertanam jika ini program zakat */}
                 {program.category?.toUpperCase() === 'ZAKAT' && (
                   <div className="bg-emerald-50/40 p-1 border border-dashed border-emerald-600/30">
                     <p className="text-[11px] font-black text-emerald-800 uppercase tracking-widest px-4 pt-3">🧮 Simulasi Kalkulator Zakat Digital</p>
@@ -303,7 +341,7 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
           </div>
         </div>
 
-        {/* SIDEBAR FORM (DESKTOP) */}
+        {/* SIDEBAR FORM & AKSI (DESKTOP) */}
         <div className="hidden lg:block bg-white rounded-none p-6 shadow-sm border border-gray-100 h-fit lg:sticky lg:top-24">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-left">Dana Terkumpul</p>
           <p className="text-3xl font-black text-emerald-600 mt-1 text-left">{`Rp ${Number(program.collectedRaw || 0).toLocaleString('id-ID')}`}</p>
@@ -311,7 +349,13 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
           <div className="w-full bg-gray-100 h-2 rounded-none mt-4 overflow-hidden">
             <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
           </div>
-          <div className="mt-6 pt-6 border-t border-gray-100">
+          {/* Informasi Tracking Aktif Affiliasi di Desktop */}
+          {referral && (
+            <div className="mt-3 bg-purple-50 border border-dashed border-purple-200 p-2 text-center">
+              <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wide">✨ Link Afiliasi Terdeteksi</p>
+            </div>
+          )}
+          <div className="mt-4 pt-4 border-t border-gray-100">
             <DonationFormFields 
               donorName={donorName} setDonorName={setDonorName}
               donorPhone={donorPhone} setDonorPhone={setDonorPhone}
@@ -320,16 +364,25 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
               handleDonate={handleDonate} submitting={submitting}
             />
           </div>
+
+          <button 
+            onClick={() => setIsFundraiserModalOpen(true)}
+            className="w-full bg-white border-2 border-purple-600 text-purple-700 hover:border-emerald-500 hover:text-emerald-600 font-bold py-3 px-4 rounded-none transition-all duration-300 text-xs tracking-wider uppercase mt-4 flex items-center justify-center space-x-2 border-dashed"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+            </svg>
+            <span>Menjadi Fundraiser</span>
+          </button>
         </div>
 
       </div>
 
       {/* ===================================================================
-          🚀 FIXED MOBILE TRIGGER: Susunan Vertikal, Teks Target, Tombol Merah
+          🚀 TRIGGER STICKY BOTTOM BAR (MOBILE)
           =================================================================== */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 z-40 flex flex-col space-y-3 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] rounded-none">
         
-        {/* Info Nominal Sekarang Berada di Atas Sejajar Kiri-Kanan */}
         <div className="flex justify-between items-end text-left w-full px-0.5">
           <div className="flex flex-col">
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Terkumpul</span>
@@ -345,25 +398,40 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
           </div>
         </div>
 
-        {/* Bar progress mini tambahan untuk memperkuat visual pencapaian di mobile */}
         <div className="w-full bg-gray-100 h-1 rounded-none overflow-hidden">
           <div className="bg-emerald-500 h-full" style={{ width: `${percentage}%` }}></div>
         </div>
 
-        {/* Tombol Merah Mencolok Menempati Lebar Penuh di Bagian Bawah */}
+        {/* Info Tracking Singkat Mobile */}
+        {referral && (
+          <div className="bg-purple-50 border border-dashed border-purple-200 py-1 text-center text-[9px] font-bold text-purple-700 uppercase tracking-wider">
+            Melalui Kode Afiliasi Relawan Aktif
+          </div>
+        )}
+
         <button 
           onClick={() => setIsMobileFormOpen(true)} 
-          className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-widest py-3.5 rounded-none shadow-md shadow-red-100 transition-colors"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-widest py-3.5 rounded-none shadow-md shadow-emerald-100 transition-colors"
         >
           Donasi Sekarang 🚀
         </button>
+
+        <button 
+          onClick={() => setIsFundraiserModalOpen(true)}
+          className="w-full bg-white border border-purple-600 text-purple-700 hover:text-emerald-600 hover:border-emerald-500 text-[10px] font-black uppercase tracking-wider py-2.5 rounded-none transition-colors flex items-center justify-center space-x-2 border-dashed"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+          </svg>
+          <span>Menjadi Fundraiser</span>
+        </button>
       </div>
 
-      {/* MOBILE POPUP FORM */}
+      {/* MOBILE POPUP FORM DONASI */}
       {isMobileFormOpen && (
         <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end">
           <div className="absolute inset-0" onClick={() => setIsMobileFormOpen(false)} />
-          <div className="relative w-full bg-white rounded-t-none p-6 space-y-4 max-h-[85vh] overflow-y-auto z-10">
+          <div className="relative w-full bg-white rounded-none p-6 space-y-4 max-h-[85vh] overflow-y-auto z-10">
             <div className="w-12 h-1 bg-gray-200 rounded-none mx-auto mb-2" onClick={() => setIsMobileFormOpen(false)} />
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
               <h3 className="text-sm font-black uppercase tracking-wide">Isi Data Infak</h3>
@@ -379,6 +447,32 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
           </div>
         </div>
       )}
+
+      {/* MODAL REGISTER FUNDRAISER */}
+      {isFundraiserModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="absolute inset-0" onClick={() => setIsFundraiserModalOpen(false)} />
+          <div className="bg-white w-full max-w-sm rounded-none p-5 shadow-xl border border-gray-200 space-y-4 relative z-10 text-left">
+            <button onClick={() => setIsFundraiserModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-sm font-bold">✕</button>
+            <div className="space-y-1">
+              <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider">Registrasi Fundraiser</h3>
+              <p className="text-[10px] font-medium text-gray-400">Bantu himpun dana gotong royong untuk program ini</p>
+            </div>
+            <form onSubmit={handleRegisterFundraiser} className="space-y-3.5 pt-1">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Nama Lengkap</label>
+                <input type="text" required placeholder="Masukkan nama asli Anda" value={fundraiserData.name} onChange={(e) => setFundraiserData({ ...fundraiserData, name: e.target.value })} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-none text-xs font-medium focus:outline-none focus:border-purple-600 focus:bg-white" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Nomor WhatsApp</label>
+                <input type="tel" required placeholder="Contoh: 08123456789" value={fundraiserData.phone} onChange={(e) => setFundraiserData({ ...fundraiserData, phone: e.target.value })} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-none text-xs font-medium focus:outline-none focus:border-purple-600 focus:bg-white" />
+              </div>
+              <button type="submit" disabled={fundraiserSubmitting} className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-none text-xs uppercase tracking-widest transition duration-150 mt-1 shadow-sm">{fundraiserSubmitting ? 'Mengirim Data...' : 'Kirim Pengajuan 📢'}</button>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -4,6 +4,7 @@ import CampaignDetailClient from '@/components/CampaignDetailClient';
 
 interface Props {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ ref?: string }>; // 🚀 TERPASANG: Menangkap parameter ?ref= dari tautan penyebaran fundraiser
 }
 
 // 🚀 PROTEKSI 1: Mengunci batas revalidasi halaman detail selama 60 detik di level server Next.js
@@ -63,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   } catch (error) {
     console.error('🔥 Fetch campaign metadata failed:', error);
-    campaignDesc = 'Salurkan infak, sedekah, dan zakat Anda secara instan dan amanah melalui lazisku.com.';
+    campaignDesc = 'Salurkan infak, sedekah, dan zakat Anda secara instan and amanah melalui lazisku.com.';
   }
 
   return {
@@ -101,9 +102,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // ===================================================================
 // 🖥️ SERVER COMPONENT ENTRY
 // ===================================================================
-export default async function CampaignPage({ params }: Props) {
+export default async function CampaignPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  
-  // Melempar slug ke antarmuka client untuk rendering form & interaksi tab
-  return <CampaignDetailClient slug={slug} />;
+  const { ref } = await searchParams; // Menyelesaikan pembacaan query secara asinkronus (Next.js 15+)
+
+  // 🚀 AKSI: Melempar slug dan tracking referral kode WhatsApp relawan ke antarmuka client untuk form donasi
+  return <CampaignDetailClient slug={slug} referral={ref || null} />;
 }
