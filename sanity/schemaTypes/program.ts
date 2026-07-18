@@ -27,18 +27,20 @@ export default defineType({
       title: 'Kategori',
       type: 'string',
       options: {
+        // ===================================================================
+        // 🚀 FIXED VALUE: Menggunakan format reguler agar langsung sinkron dengan frontend Anda
+        // ===================================================================
         list: [
-          { title: 'Kemanusiaan', value: 'KEMANUSIAAN' },
-          { title: 'Pendidikan', value: 'PENDIDIKAN' },
-          { title: 'Kesehatan', value: 'KESEHATAN' },
-          { title: 'Infrastruktur', value: 'INFRASTRUKTUR' },
-          // 🚀 BARU: Menambahkan opsi fungsionalitas ZISWAF
-          { title: 'Zakat', value: 'ZAKAT' },
-          { title: 'Infak / Sedekah', value: 'INFAK' },
-          { title: 'Wakaf', value: 'WAKAF' },
+          { title: 'Kemanusiaan', value: 'Kemanusiaan' },
+          { title: 'Pendidikan', value: 'Pendidikan' },
+          { title: 'Kesehatan', value: 'Kesehatan' },
+          { title: 'Infrastruktur', value: 'Infrastruktur' },
+          { title: 'Zakat', value: 'Zakat' },
+          { title: 'Infak / Sedekah', value: 'Infak' },
+          { title: 'Wakaf', value: 'Wakaf' },
         ],
       },
-      initialValue: 'KEMANUSIAAN',
+      initialValue: 'Kemanusiaan',
     }),
     defineField({
       name: 'image',
