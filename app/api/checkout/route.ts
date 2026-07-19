@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     // Gunakan payment_url bawaan dari objek gateway jika tersedia, atau arahkan ke fallback link web checkout
     const paymentUrl = pakasirData.payment.payment_url || fallbackUrlWeb;
 
-    // 🚀 MENULIS DATA TRANSAKSI LENGKAP KE SANITY (TERMASUK FIELD AFILIASI)
+    // 🚀 1. MENULIS DATA TRANSAKSI LENGKAP KE SANITY
     await client.create({
       _type: 'donationTransaction',
       orderId: String(generatedOrderId),
@@ -107,11 +107,38 @@ export async function POST(request: Request) {
       paymentMethod: String(cleanMethod), 
       paymentUrl: String(paymentUrl), 
       paymentNumber: String(paymentNumber), 
-      // 🚀 MASUKKAN KE SKEMA SANITY DI SINI:
       fundraiserPhone: fundraiserPhone ? String(fundraiserPhone).trim() : '',
     });
 
-    console.log(`🔒 TRANSAKSI BERHASIL DICATAT: ${generatedOrderId} | Fundraiser: ${fundraiserPhone || 'Non-Afiliasi'}`);
+    console.log(`🔒 TRANSAKSI BERHASIL DICATAT DI SANITY: ${generatedOrderId} | Fundraiser: ${fundraiserPhone || 'Non-Afiliasi'}`);
+
+    // 🚀 2. SYNC KE GOOGLE SHEET (Ditempatkan sebelum response agar serverless Vercel tidak memutus koneksi)
+    const googleSheetScriptUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL || '';
+
+    if (googleSheetScriptUrl && googleSheetScriptUrl.trim()) {
+      try {
+        await fetch(googleSheetScriptUrl.trim(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: generatedOrderId,
+            donorName: String(donorName),
+            donorPhone: `'${String(donorPhone)}`, // Ditambah petik agar awalan 08 tidak terpotong di Google Sheet
+            amount: cleanAmountNumber,
+            programSlug: String(slug),
+            paymentMethod: cleanMethod,
+            fundraiserPhone: fundraiserPhone ? `'${String(fundraiserPhone)}` : '-',
+            status: 'pending',
+            createdAt: new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })
+          }),
+        });
+        console.log(`📊 DATA SINKRON KE GOOGLE SHEET: ${generatedOrderId}`);
+      } catch (sheetError) {
+        console.error('🔥 Gagal mengirim data transaksi ke Google Sheet:', sheetError);
+      }
+    } else {
+      console.warn('⚠️ GOOGLE_SHEET_WEBHOOK_URL belum dipasang di environment variables.');
+    }
 
     // Mengembalikan response sukses ke komponen frontend
     return NextResponse.json({
