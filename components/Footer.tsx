@@ -63,7 +63,7 @@ export default function Footer() {
                 <Link href="/blog" className="hover:text-emerald-600 transition-colors">Berita dan Artikel</Link>
               </li>
               <li>
-                <Link href="https://jasaqiqah.my.id" className="hover:text-emerald-600 transition-colors">Jasa Aqiqah</Link>
+                <Link href="https://www.lazisku.com/fundraiser/stats" className="hover:text-emerald-600 transition-colors">Fundraiser</Link>
               </li>
               <li>
                 <Link href="/peta-situs" className="hover:text-emerald-600 transition-colors">Peta Situs</Link>
