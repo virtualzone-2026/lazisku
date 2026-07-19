@@ -1,4 +1,3 @@
-// schemas/donationTransaction.ts
 import { defineField, defineType } from 'sanity';
 
 export default defineType({
@@ -19,7 +18,7 @@ export default defineType({
     }),
     defineField({
       name: 'donorPhone',
-      title: 'Nomor WhatsApp',
+      title: 'Nomor WhatsApp Donatur',
       type: 'string',
     }),
     defineField({
@@ -60,6 +59,36 @@ export default defineType({
       title: 'Target Program Slug',
       type: 'string',
       readOnly: true,
-    })
+    }),
+    // ===================================================================
+    // 🛠️ TAMBAHAN BARU: Sinkronisasi Integrasi API Gateway Pakasir
+    // ===================================================================
+    defineField({
+      name: 'paymentMethod',
+      title: 'Metode Pembayaran',
+      type: 'string',
+      readOnly: true,
+    }),
+    defineField({
+      name: 'paymentNumber',
+      title: 'Nomor Pembayaran / String QRIS',
+      type: 'string',
+      readOnly: true,
+    }),
+    defineField({
+      name: 'paymentUrl',
+      title: 'URL Pembayaran Pakasir',
+      type: 'string',
+      readOnly: true,
+    }),
+    // ===================================================================
+    // 🚀 FIELD KUNCI AFILIASI: Penampung Jejak Relawan/Fundraiser
+    // ===================================================================
+    defineField({
+      name: 'fundraiserPhone',
+      title: 'Nomor WhatsApp Fundraiser (Relawan)',
+      type: 'string',
+      readOnly: true, // Biar tidak bisa dimanipulasi manual dari studio admin
+    }),
   ]
 });

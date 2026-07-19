@@ -1,4 +1,3 @@
-// app/campaign/[slug]/page.tsx
 import { Metadata } from 'next';
 import CampaignDetailClient from '@/components/CampaignDetailClient';
 import { createClient } from '@sanity/client';
@@ -22,8 +21,10 @@ const metadataClient = createClient({
 // ===================================================================
 // 🚀 DYNAMIC METADATA: Menembak Thumbnail & Deskripsi Unik Program ke Medsos
 // ===================================================================
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const { ref } = await searchParams; // 🚀 Ikut tangkap ref untuk canonical & OG URL biar tracking medsos valid
+  
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://lazisku.com';
   const fallbackImage = `${siteUrl}/images/banner-utama.png`;
   
@@ -65,7 +66,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         campaignDesc = `Mari bantu program "${campaignTitle}" bersama LAZIS Khoiro Ummah. Salurkan kepedulian Anda secara transparan via QRIS & VA.`;
       }
 
-      // Pastikan URL gambar menggunakan CDN Sanity langsung agar ter-render sempurna di medsos
       if (found.imageUrl) {
         imageUrl = found.imageUrl;
       }
@@ -75,19 +75,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     campaignDesc = 'Salurkan infak, sedekah, dan zakat Anda secara instan dan amanah melalui lazisku.com.';
   }
 
+  // Susun query string jika link disebar menggunakan referral
+  const urlPath = ref ? `/campaign/${slug}?ref=${ref}` : `/campaign/${slug}`;
+
   return {
     title: campaignTitle,
     description: campaignDesc,
     alternates: {
-      canonical: `/campaign/${slug}`,
+      canonical: urlPath,
     },
     openGraph: {
       title: campaignTitle,
       description: campaignDesc,
-      url: `${siteUrl}/campaign/${slug}`,
+      url: `${siteUrl}${urlPath}`,
       siteName: 'LAZIS Khoiro Ummah',
       locale: 'id_ID',
-      type: 'article', // Menggunakan tipe article agar lebih kaya info di WhatsApp/FB
+      type: 'article',
       images: [
         {
           url: imageUrl,
@@ -113,6 +116,6 @@ export default async function CampaignPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const { ref } = await searchParams; // Menyelesaikan pembacaan query secara asinkronus
 
-  // 🚀 AKSI: Mengalirkan slug dan tracking kode referral relawan ke sisi client
+  // 🚀 AKSI UTAMA: Mengalirkan slug dan nomor WA fundraiser (ref) ke Client Component
   return <CampaignDetailClient slug={slug} referral={ref || null} />;
 }
