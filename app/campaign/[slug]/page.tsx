@@ -31,14 +31,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     siteUrl = siteUrl.replace('https://', 'https://www.');
   }
   
-  const fallbackImage = `${siteUrl}/images/banner-utama.png`;
-  
-  let campaignTitle = 'Program Donasi Amanah | LAZIS Khoiro Ummah';
-  let campaignDesc = 'Salurkan infak, sedekah, dan zakat Anda secara instan dan amanah melalui lazisku.com.'; 
-  let imageUrl = fallbackImage;
+  let campaignTitle = 'Sedekah Subuh | LAZIS Khoiro Ummah';
+  let campaignDesc = 'Awali hari dengan keberkahan. Sedekah subuh adalah waktu terbaik untuk berbagi kebaikan.'; 
+  let imageUrl = '';
 
   try {
-    const query = `*[_type == "program" && slug.current == $slug][0] {
+    // 🚀 FIXED QUERY: Fleksibel mencari dokumen tipe 'program' atau 'campaign' agar kebal kesalahan penamaan schema
+    const query = `*[(_type == "program" || _type == "campaign") && slug.current == $slug][0] {
       title,
       description,
       "imageUrl": mainImage.asset->url
@@ -62,21 +61,25 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         }
       }
 
-      // 🚀 PROXY IMAGE: Mengirimkan gambar lewat domain internal agar diloloskan WhatsApp secara mutlak
+      // Ambil link gambar asli Sanity CDN langsung tanpa API proxy untuk menyamakan jalur kesuksesan halaman blog
       if (found.imageUrl) {
-        const cleanSanityUrl = `${found.imageUrl}?format=jpg&w=1200&h=630&fit=crop`;
-        imageUrl = `${siteUrl}/api/og-image?url=${encodeURIComponent(cleanSanityUrl)}`;
+        imageUrl = `${found.imageUrl}?format=jpg&w=1200&h=630&fit=crop`;
       }
     }
   } catch (error) {
     console.error('🔥 Fetch campaign metadata failed:', error);
   }
 
+  // 🚀 ABSOLUTE FALLBACK: Jika gambar utama gagal ditarik dari DB, pinjam asset gambar blog yang sudah terbukti sukses muncul di WA
+  if (!imageUrl) {
+    imageUrl = 'https://cdn.sanity.io/images/61d8vnuq/production/54504f4c2810fb8bece0e88229ef5e2ad6f0ba8c-1200x630.jpg?format=jpg';
+  }
+
   return {
     title: campaignTitle,
     description: campaignDesc,
     alternates: {
-      // 🚀 FIXED: Bersihkan canonical dari query string (?ref=) agar identik dengan alur halaman blog
+      // Bersihkan canonical dari query string (?ref=) agar identik dengan alur halaman blog
       canonical: `${siteUrl}/campaign/${slug}`,
     },
     openGraph: {
