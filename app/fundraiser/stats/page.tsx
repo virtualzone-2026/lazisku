@@ -7,6 +7,7 @@ export default function FundraiserStatsPage() {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState('');
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const handleCheckStats = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +31,12 @@ export default function FundraiserStatsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCopy = (text: string, index: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 2000);
   };
 
   return (
@@ -85,9 +92,7 @@ export default function FundraiserStatsPage() {
                 <span className="text-lg font-black text-emerald-600">Rp {stats.totalEarnings.toLocaleString('id-ID')}</span>
               </div>
 
-              {/* ===================================================================
-                  🚀 RINCIAN ALOKASI & PENCATATAN UJRAH/FEE FUNDRAISER 10%
-                  =================================================================== */}
+              {/* Rincian Alokasi Perolehan */}
               <div className="border-t border-dashed border-gray-200 pt-2 space-y-1.5">
                 <div className="flex justify-between items-baseline">
                   <span className="text-[10px] font-bold text-gray-400 uppercase">Total Ujrah Hak Anda (10%)</span>
@@ -96,7 +101,6 @@ export default function FundraiserStatsPage() {
                 
                 <div className="flex justify-between items-baseline">
                   <span className="text-[10px] font-bold text-amber-600 uppercase">Fee Sudah Dibayarkan Yayasan</span>
-                  {/* Membaca properti feePaid dari data profile Sanity, jika kosong default ke 0 */}
                   <span className="text-xs font-bold text-amber-700">-Rp {(stats.profile.feePaid || 0).toLocaleString('id-ID')}</span>
                 </div>
 
@@ -114,42 +118,74 @@ export default function FundraiserStatsPage() {
               </div>
             </div>
 
-            {/* Blok Kotak Tautan Afiliasi Otomatis */}
-            <div className="mt-4 pt-2 text-left space-y-2">
-              <label className="text-[10px] font-bold text-purple-600 uppercase tracking-wider block">🔗 Tautan Afiliasi Anda</label>
-              <div className="flex rounded-none overflow-hidden border border-gray-300">
-                <input 
-                  type="text" 
-                  readOnly 
-                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/campaign/${stats.profile.programSlug}?ref=${phone.replace(/[^0-9]/g, '')}`}
-                  className="flex-1 bg-gray-50 px-3 py-2 text-xs font-mono text-gray-600 focus:outline-none"
-                  id="affiliate-link-input"
-                />
-                <button 
-                  type="button"
-                  onClick={() => {
-                    const copyText = document.getElementById('affiliate-link-input') as HTMLInputElement;
-                    if (copyText) {
-                      copyText.select();
-                      navigator.clipboard.writeText(copyText.value);
-                      alert('Link afiliasi berhasil disalin! Silakan sebarkan ke jaringan Anda.');
-                    }
-                  }}
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 text-xs uppercase tracking-wider transition"
-                >
-                  Salin
-                </button>
+            {/* ===================================================================
+                🚀 AKSI DAFTAR TAUTAN MULTI-PROGRAM: Mapping Semua Link Aktif
+               =================================================================== */}
+            <div className="mt-4 pt-2 text-left space-y-3">
+              <label className="text-[10px] font-bold text-purple-600 uppercase tracking-wider block">🔗 Daftar Tautan Afiliasi Program Anda</label>
+              
+              <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                {stats.programs && stats.programs.length > 0 ? (
+                  stats.programs.map((prog: any, index: number) => {
+                    const cleanPhone = phone.replace(/[^0-9]/g, '');
+                    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+                    const affiliateUrl = `${baseUrl}/campaign/${prog.slug}?ref=${cleanPhone}`;
+                    
+                    return (
+                      <div key={index} className="border border-gray-200 bg-gray-50/50 p-2.5 space-y-2">
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="text-[10px] font-bold text-gray-700 line-clamp-2 leading-tight flex-1">
+                            {prog.title}
+                          </span>
+                          <button 
+                            type="button"
+                            onClick={() => handleCopy(affiliateUrl, index)}
+                            className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 transition-all text-white ${copiedIndex === index ? 'bg-emerald-600' : 'bg-purple-600 hover:bg-purple-700'}`}
+                          >
+                            {copiedIndex === index ? 'Tersalin' : 'Salin'}
+                          </button>
+                        </div>
+                        <div className="bg-white border border-gray-200 px-2 py-1.5 text-[9px] font-mono text-gray-500 truncate select-all">
+                          {affiliateUrl}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  // Fallback jika API backend belum mengembalikan array program dinamis
+                  <div className="border border-gray-200 bg-gray-50/50 p-2.5 space-y-2">
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="text-[10px] font-bold text-gray-700 line-clamp-2 leading-tight flex-1">
+                        Program Utama Aktif
+                      </span>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+                          handleCopy(`${baseUrl}/campaign/${stats.profile.programSlug}?ref=${phone.replace(/[^0-9]/g, '')}`, 999);
+                        }}
+                        className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 transition-all text-white ${copiedIndex === 999 ? 'bg-emerald-600' : 'bg-purple-600 hover:bg-purple-700'}`}
+                      >
+                        {copiedIndex === 999 ? 'Tersalin' : 'Salin'}
+                      </button>
+                    </div>
+                    <div className="bg-white border border-gray-200 px-2 py-1.5 text-[9px] font-mono text-gray-500 truncate">
+                      {`${typeof window !== 'undefined' ? window.location.origin : ''}/campaign/${stats.profile.programSlug}?ref=${phone.replace(/[^0-9]/g, '')}`}
+                    </div>
+                  </div>
+                )}
               </div>
+              
               <p className="text-[9px] text-gray-400 font-medium leading-relaxed">
-                *Sebarkan link di atas ke Facebook, WhatsApp, atau Instagram. Setiap donasi sukses yang masuk melalui link ini akan otomatis tercatat atas nama Anda.
+                *Klik salin pada program donasi pilihan Anda, kemudian sebarkan ke jaringan sosial media. Setiap donasi sukses otomatis terikat pada akun Anda.
               </p>
             </div>
 
-            {/* Riwayat Singkat */}
-            <div className="space-y-2">
+            {/* Riwayat Dukungan Transaksi */}
+            <div className="space-y-2 border-t border-gray-100 pt-3">
               <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Riwayat Dukungan Transaksi</h3>
               <div className="max-h-40 overflow-y-auto space-y-2 pr-1">
-                {stats.history.length > 0 ? (
+                {stats.history && stats.history.length > 0 ? (
                   stats.history.map((item: any, idx: number) => (
                     <div key={idx} className="flex justify-between items-center p-2.5 bg-white border border-gray-100 text-xs shadow-xs">
                       <span className="font-bold text-gray-700 line-clamp-1">{item.donorName}</span>

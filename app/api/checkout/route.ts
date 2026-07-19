@@ -1,4 +1,3 @@
-// app/api/checkout/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from '@sanity/client';
 
@@ -20,6 +19,9 @@ export async function POST(request: Request) {
     const slug = body.slug || '';
     const donorName = body.donorName || body.name || 'Hamba Allah';
     const donorPhone = body.donorPhone || body.phone || body.whatsapp || ''; 
+    
+    // 🚀 LOGIKA AFILIASI: Tangkap nomor WhatsApp fundraiser yang dioper oleh frontend
+    const fundraiserPhone = body.fundraiserPhone || body.referral || '';
     
     // 🚀 DUKUNGAN MULTI-PAYMENT: Mengambil pilihan dari frontend. Fallback otomatis ke 'qris'
     const paymentMethod = body.paymentMethod || 'qris';
@@ -92,7 +94,7 @@ export async function POST(request: Request) {
     // Gunakan payment_url bawaan dari objek gateway jika tersedia, atau arahkan ke fallback link web checkout
     const paymentUrl = pakasirData.payment.payment_url || fallbackUrlWeb;
 
-    // 🚀 MENULIS DATA TRANSAKSI LENGKAP KE SANITY
+    // 🚀 MENULIS DATA TRANSAKSI LENGKAP KE SANITY (TERMASUK FIELD AFILIASI)
     await client.create({
       _type: 'donationTransaction',
       orderId: String(generatedOrderId),
@@ -105,9 +107,11 @@ export async function POST(request: Request) {
       paymentMethod: String(cleanMethod), 
       paymentUrl: String(paymentUrl), 
       paymentNumber: String(paymentNumber), 
+      // 🚀 MASUKKAN KE SKEMA SANITY DI SINI:
+      fundraiserPhone: fundraiserPhone ? String(fundraiserPhone).trim() : '',
     });
 
-    console.log(`🔒 TRANSAKSI BERHASIL DICATAT: ${generatedOrderId} | Metode: ${cleanMethod} | Total: Rp ${cleanAmountNumber}`);
+    console.log(`🔒 TRANSAKSI BERHASIL DICATAT: ${generatedOrderId} | Fundraiser: ${fundraiserPhone || 'Non-Afiliasi'}`);
 
     // Mengembalikan response sukses ke komponen frontend
     return NextResponse.json({
