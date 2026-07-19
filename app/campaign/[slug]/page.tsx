@@ -1,15 +1,23 @@
 // app/campaign/[slug]/page.tsx
 import { Metadata } from 'next';
 import CampaignDetailClient from '@/components/CampaignDetailClient';
+import { createClient } from '@sanity/client';
 
 interface Props {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ ref?: string }>; // 🚀 TERPASANG: Menangkap parameter ?ref= dari tautan penyebaran fundraiser
+  searchParams: Promise<{ ref?: string }>; // 🚀 Menangkap parameter ?ref= dari tautan penyebaran fundraiser
 }
 
-// 🚀 PROTEKSI 1: Mengunci batas revalidasi halaman detail selama 60 detik di level server Next.js
+// 🚀 PROTEKSI SERVER: Mengunci mode dynamic rendering untuk menangkap query string secara instan
 export const dynamic = 'force-dynamic';
-export const revalidate = 60;
+
+// Inisialisasi client minimal khusus baca metadata (Gunakan CDN agar super cepat & hemat kuota)
+const metadataClient = createClient({
+  projectId: '61d8vnuq',
+  dataset: 'production',
+  useCdn: true,
+  apiVersion: '2024-01-01',
+});
 
 // ===================================================================
 // 🚀 DYNAMIC METADATA: Menembak Thumbnail & Deskripsi Unik Program ke Medsos
@@ -24,47 +32,47 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let imageUrl = fallbackImage;
 
   try {
-    // 🚀 PROTEKSI 2: Menghapus query string dinamis Date.now() & menyematkan cache-revalidate 60 detik
-    const res = await fetch(`${siteUrl}/api/programs`, {
-      next: { revalidate: 60 },
-    });
-    const json = await res.json();
+    // 🚀 EFISIENSI TINGGI: Langsung tembak spesifik 1 program berdasarkan slug via Sanity CDN
+    const query = `*[_type == "program" && slug.current == $slug][0] {
+      title,
+      description,
+      "imageUrl": mainImage.asset->url
+    }`;
     
-    if (json.success && json.data) {
-      const found = json.data.find((p: any) => p.slug === slug);
-      if (found) {
-        if (found.title) campaignTitle = found.title;
-        
-        // ===================================================================
-        // 🚀 LOGIC PARSING: EKSTRAKSI DESKRIPSI AMAN
-        // ===================================================================
-        if (found.description) {
-          if (typeof found.description === 'string') {
-            campaignDesc = found.description.slice(0, 150) + '...';
-          } 
-          else if (Array.isArray(found.description)) {
-            const plainText = found.description
-              .filter((block: any) => block._type === 'block' && block.children)
-              .map((block: any) => block.children.map((child: any) => child.text).join(''))
-              .join(' ');
-            
-            campaignDesc = plainText ? plainText.slice(0, 150) + '...' : '';
-          }
+    const found = await metadataClient.fetch(query, { slug });
+    
+    if (found) {
+      if (found.title) campaignTitle = found.title;
+      
+      // ===================================================================
+      // 🚀 LOGIC PARSING: EKSTRAKSI DESKRIPSI AMAN (Mendukung Plain Text & Block Content)
+      // ===================================================================
+      if (found.description) {
+        if (typeof found.description === 'string') {
+          campaignDesc = found.description.slice(0, 150) + '...';
+        } 
+        else if (Array.isArray(found.description)) {
+          const plainText = found.description
+            .filter((block: any) => block._type === 'block' && block.children)
+            .map((block: any) => block.children.map((child: any) => child.text).join(''))
+            .join(' ');
+          
+          campaignDesc = plainText ? plainText.slice(0, 150) + '...' : '';
         }
+      }
 
-        if (!campaignDesc) {
-          campaignDesc = `Mari bantu program "${campaignTitle}" bersama LAZIS Khoiro Ummah. Salurkan kepedulian Anda secara transparan via QRIS & VA.`;
-        }
+      if (!campaignDesc) {
+        campaignDesc = `Mari bantu program "${campaignTitle}" bersama LAZIS Khoiro Ummah. Salurkan kepedulian Anda secara transparan via QRIS & VA.`;
+      }
 
-        const rawImage = found.image;
-        if (rawImage && typeof rawImage === 'string') {
-          imageUrl = rawImage.startsWith('http') ? rawImage : `${siteUrl}${rawImage.startsWith('/') ? '' : '/'}${rawImage}`;
-        }
+      // Pastikan URL gambar menggunakan CDN Sanity langsung agar ter-render sempurna di medsos
+      if (found.imageUrl) {
+        imageUrl = found.imageUrl;
       }
     }
   } catch (error) {
     console.error('🔥 Fetch campaign metadata failed:', error);
-    campaignDesc = 'Salurkan infak, sedekah, dan zakat Anda secara instan and amanah melalui lazisku.com.';
+    campaignDesc = 'Salurkan infak, sedekah, dan zakat Anda secara instan dan amanah melalui lazisku.com.';
   }
 
   return {
@@ -79,13 +87,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `${siteUrl}/campaign/${slug}`,
       siteName: 'LAZIS Khoiro Ummah',
       locale: 'id_ID',
-      type: 'website',
+      type: 'article', // Menggunakan tipe article agar lebih kaya info di WhatsApp/FB
       images: [
         {
           url: imageUrl,
           width: 1200,
           height: 630,
-          type: 'image/png',
           alt: campaignTitle,
         },
       ],
@@ -100,12 +107,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 // ===================================================================
-// 🖥️ SERVER COMPONENT ENTRY
+// 🖥️ SERVER COMPONENT ENTRY (Next.js 15+ App Router)
 // ===================================================================
 export default async function CampaignPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const { ref } = await searchParams; // Menyelesaikan pembacaan query secara asinkronus (Next.js 15+)
+  const { ref } = await searchParams; // Menyelesaikan pembacaan query secara asinkronus
 
-  // 🚀 AKSI: Melempar slug dan tracking referral kode WhatsApp relawan ke antarmuka client untuk form donasi
+  // 🚀 AKSI: Mengalirkan slug dan tracking kode referral relawan ke sisi client
   return <CampaignDetailClient slug={slug} referral={ref || null} />;
 }
