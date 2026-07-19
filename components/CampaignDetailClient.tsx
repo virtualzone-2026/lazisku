@@ -134,7 +134,6 @@ const DonationFormFields = ({
       <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nominal Dana (Rp)</label>
       <div className="relative flex items-center">
         <span className="absolute left-3.5 text-xs font-bold text-gray-400">Rp</span>
-        {/* 🚀 FIXED PLACEHOLDER: Diubah menjadi Minimal 1.000 */}
         <input type="text" placeholder="Minimal 1.000" className="w-full border border-gray-200 rounded-none pl-9 pr-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-emerald-500" value={amount} onChange={handleAmountChange} />
       </div>
     </div>
@@ -186,7 +185,6 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
 
   const handleDonate = async () => {
     const cleanAmount = amount.replace(/\./g, '');
-    // 🚀 FIXED VALIDATION: Batas minimal diturunkan dari 10000 menjadi 1000 rupiah
     if (!cleanAmount || Number(cleanAmount) < 1000) {
       alert('Masukkan nominal minimal Rp 1.000 gaes!');
       return;
@@ -220,7 +218,6 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
     }
   };
 
-  // --- HANDLER SUBMIT PENDAFTARAN FUNDRAISER ---
   const handleRegisterFundraiser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fundraiserData.name || !fundraiserData.phone) return alert('Mohon isi nama dan nomor WhatsApp Anda.');
@@ -249,7 +246,7 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
       console.error('🔥 Error submit fundraiser:', err);
       alert('Terjadi gangguan jaringan saat memproses pendaftaran.');
     } finally {
-      setSubmitting(false);
+      setFundraiserSubmitting(false);
     }
   };
 
@@ -350,7 +347,6 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
           <div className="w-full bg-gray-100 h-2 rounded-none mt-4 overflow-hidden">
             <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
           </div>
-          {/* Informasi Tracking Aktif Affiliasi di Desktop */}
           {referral && (
             <div className="mt-3 bg-purple-50 border border-dashed border-purple-200 p-2 text-center">
               <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wide">✨ Link Afiliasi Terdeteksi</p>
@@ -380,7 +376,7 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
       </div>
 
       {/* ===================================================================
-          🚀 TRIGGER STICKY BOTTOM BAR (MOBILE)
+          🚀 TRIGGER STICKY BOTTOM BAR (MOBILE) -> SEKARANG RED MERAH FIRE 🔥
           =================================================================== */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 z-40 flex flex-col space-y-3 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] rounded-none">
         
@@ -410,9 +406,10 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
           </div>
         )}
 
+        {/* 🔴 TOMBOL UTAMA: Berganti ke warna merah menyala agar terlihat sangat mencolok */}
         <button 
           onClick={() => setIsMobileFormOpen(true)} 
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-widest py-3.5 rounded-none shadow-md shadow-emerald-100 transition-colors"
+          className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-widest py-3.5 rounded-none shadow-md shadow-red-100 transition-colors"
         >
           Donasi Sekarang 🚀
         </button>
