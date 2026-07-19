@@ -1,4 +1,3 @@
-// schemas/fundraiser.ts
 import { defineField, defineType } from 'sanity';
 
 export default defineType({
@@ -18,13 +17,18 @@ export default defineType({
       type: 'string',
       validation: (Rule) => Rule.required().error('Nomor WhatsApp wajib diisi'),
     }),
+    
+    // ===================================================================
+    // 🚀 FIXED: ARRAY OF REFERENCES (Mendukung Banyak Program)
+    // ===================================================================
     defineField({
-      name: 'program',
+      name: 'supportedPrograms',
       title: 'Program yang Didukung',
-      type: 'reference',
-      to: [{ type: 'program' }],
-      validation: (Rule) => Rule.required().error('Wajib memilih program donasi'),
+      description: 'Pilih program spesifik. JIKA DIKOSONGKAN, fundraiser otomatis dapat mengakses semua program aktif.',
+      type: 'array',
+      of: [{ type: 'reference', to: [{ type: 'program' }] }],
     }),
+
     defineField({
       name: 'status',
       title: 'Status Verifikasi',
@@ -38,14 +42,49 @@ export default defineType({
       },
       initialValue: 'pending',
     }),
-    // 🚀 FIELD BARU: PENCATATAN PEMBAYARAN FEE OLEH ADMIN YAYASAN
+
+    // ===================================================================
+    // 📊 FIELD OTOMATIS (Read-only agar tidak bisa dimanipulasi manual)
+    // ===================================================================
+    defineField({
+      name: 'totalDanaDihimpun',
+      title: 'Total Dana Dihimpun (Otomatis)',
+      type: 'number',
+      readOnly: true,
+      initialValue: 0,
+    }),
+    defineField({
+      name: 'totalTransaksiSukses',
+      title: 'Total Transaksi Sukses (Otomatis)',
+      type: 'number',
+      readOnly: true,
+      initialValue: 0,
+    }),
+    defineField({
+      name: 'sisaSaldoFee',
+      title: 'Sisa Saldo Fee Tersedia (Otomatis)',
+      type: 'number',
+      readOnly: true,
+      initialValue: 0,
+    }),
+
+    // ===================================================================
+    // 💰 FIELD MANUAL (Input Admin)
+    // ===================================================================
     defineField({
       name: 'feePaid',
       title: 'Fee Yang Sudah Dibayarkan (Rp)',
       type: 'number',
-      description: 'Input nominal akumulasi fee yang telah ditransfer oleh yayasan kepada fundraiser ini',
+      description: 'Input akumulasi total fee yang sudah ditransfer yayasan kepada relawan ini',
       initialValue: 0,
-      validation: (Rule) => Rule.min(0).integer().error('Nominal harus berupa angka bulat positif'),
+      validation: (Rule) => Rule.min(0).integer(),
     }),
   ],
+  // 💡 Menambahkan preview agar mudah dilihat di list Sanity Studio
+  preview: {
+    select: {
+      title: 'name',
+      subtitle: 'status',
+    }
+  }
 });
