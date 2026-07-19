@@ -4,10 +4,10 @@ import { createClient } from '@sanity/client';
 
 interface Props {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ ref?: string }>; // 🚀 Menangkap parameter ?ref= dari tautan penyebaran fundraiser
+  searchParams: Promise<{ ref?: string }>; // Tetap dipertahankan untuk kebutuhan Server Component Entry
 }
 
-// 🚀 PROTEKSI SERVER: Mengunci mode dynamic rendering untuk menangkap query string secara instan
+// 🚀 PROTEKSI SERVER: Mengunci mode dynamic rendering untuk menangkap data secara instan
 export const dynamic = 'force-dynamic';
 
 // Inisialisasi client minimal khusus baca metadata (Gunakan CDN agar super cepat & hemat kuota)
@@ -19,13 +19,13 @@ const metadataClient = createClient({
 });
 
 // ===================================================================
-// 🚀 DYNAMIC METADATA: Menembak Thumbnail & Deskripsi Unik Program ke Medsos
+// 🚀 DYNAMIC METADATA: Disamakan Persis dengan Model Struktur Blog (Super Stabil)
 // ===================================================================
-export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  // Hanya mengekstrak slug secara asinkronus agar sinkronisasi bot media sosial tidak terganggu
   const { slug } = await params;
-  const { ref } = await searchParams; // 🚀 Ikut tangkap ref untuk canonical & OG URL biar tracking medsos valid
   
-  // 🚀 FIXED: Pastikan domain utama mendukung format WWW agar sinkron saat di-share di WhatsApp
+  // Pastikan domain utama mendukung format WWW agar sinkron dengan metadata share medsos
   let siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lazisku.com';
   if (!siteUrl.includes('www.')) {
     siteUrl = siteUrl.replace('https://', 'https://www.');
@@ -34,11 +34,10 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const fallbackImage = `${siteUrl}/images/banner-utama.png`;
   
   let campaignTitle = 'Program Donasi Amanah | LAZIS Khoiro Ummah';
-  let campaignDesc = ''; 
+  let campaignDesc = 'Salurkan infak, sedekah, dan zakat Anda secara instan dan amanah melalui lazisku.com.'; 
   let imageUrl = fallbackImage;
 
   try {
-    // 🚀 EFISIENSI TINGGI: Langsung tembak spesifik 1 program berdasarkan slug via Sanity CDN
     const query = `*[_type == "program" && slug.current == $slug][0] {
       title,
       description,
@@ -50,52 +49,43 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     if (found) {
       if (found.title) campaignTitle = found.title;
       
-      // ===================================================================
-      // 🚀 LOGIC PARSING: EKSTRAKSI DESKRIPSI AMAN (Mendukung Plain Text & Block Content)
-      // ===================================================================
+      // LOGIC PARSING DESKRIPSI
       if (found.description) {
         if (typeof found.description === 'string') {
-          campaignDesc = found.description.slice(0, 150) + '...';
-        } 
-        else if (Array.isArray(found.description)) {
+          campaignDesc = found.description.slice(0, 140) + '...';
+        } else if (Array.isArray(found.description)) {
           const plainText = found.description
             .filter((block: any) => block._type === 'block' && block.children)
             .map((block: any) => block.children.map((child: any) => child.text).join(''))
             .join(' ');
-          
-          campaignDesc = plainText ? plainText.slice(0, 150) + '...' : '';
+          if (plainText) campaignDesc = plainText.slice(0, 140) + '...';
         }
       }
 
-      if (!campaignDesc) {
-        campaignDesc = `Mari bantu program "${campaignTitle}" bersama LAZIS Khoiro Ummah. Salurkan kepedulian Anda secara transparan via QRIS & VA.`;
-      }
-
+      // 🚀 PROXY IMAGE: Mengirimkan gambar lewat domain internal agar diloloskan WhatsApp secara mutlak
       if (found.imageUrl) {
-        imageUrl = found.imageUrl;
+        const cleanSanityUrl = `${found.imageUrl}?format=jpg&w=1200&h=630&fit=crop`;
+        imageUrl = `${siteUrl}/api/og-image?url=${encodeURIComponent(cleanSanityUrl)}`;
       }
     }
   } catch (error) {
     console.error('🔥 Fetch campaign metadata failed:', error);
-    campaignDesc = 'Salurkan infak, sedekah, dan zakat Anda secara instan dan amanah melalui lazisku.com.';
   }
-
-  // Susun query string jika link disebar menggunakan referral
-  const urlPath = ref ? `/campaign/${slug}?ref=${ref}` : `/campaign/${slug}`;
 
   return {
     title: campaignTitle,
     description: campaignDesc,
     alternates: {
-      canonical: urlPath,
+      // 🚀 FIXED: Bersihkan canonical dari query string (?ref=) agar identik dengan alur halaman blog
+      canonical: `${siteUrl}/campaign/${slug}`,
     },
     openGraph: {
       title: campaignTitle,
       description: campaignDesc,
-      url: `${siteUrl}${urlPath}`,
+      url: `${siteUrl}/campaign/${slug}`,
       siteName: 'LAZIS Khoiro Ummah',
       locale: 'id_ID',
-      type: 'article',
+      type: 'website', // Menggunakan website tipe agar penanganan cache gambar di WhatsApp lebih fleksibel
       images: [
         {
           url: imageUrl,
@@ -119,8 +109,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 // ===================================================================
 export default async function CampaignPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const { ref } = await searchParams; // Menyelesaikan pembacaan query secara asinkronus
+  const { ref } = await searchParams; // Tetap menangkap ref di sini secara runtime untuk dialirkan ke client side
 
-  // 🚀 AKSI UTAMA: Mengalirkan slug dan nomor WA fundraiser (ref) ke Client Component
+  // 🚀 AKSI UTAMA: Mengalirkan slug dan nomor WA fundraiser (ref) ke Client Component untuk pelacakan transaksi
   return <CampaignDetailClient slug={slug} referral={ref || null} />;
 }
