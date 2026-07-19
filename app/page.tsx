@@ -1,13 +1,48 @@
 // app/page.tsx
 import React from 'react';
+import { Metadata } from 'next';
 import Hero from '@/components/Hero';
 import TotalAccumulationWidget from '@/components/TotalAccumulationWidget'; // 🚀 BARU: Mengimpor widget akumulasi real-time
 import Campaign from '@/components/Campaign';
 import News from '@/components/News';
 
+// ===================================================================
+// 🌐 CONFIG METADATA OPEN GRAPH & TWITTER (ANTI-KOSONG DI MEDSOS)
+// ===================================================================
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://lazisku.com';
+
+export const metadata: Metadata = {
+  title: 'LAZIS Khoiro Ummah | Platform Sedekah, Infaq & Zakat Online Amanah',
+  description: 'Tunaikan kepedulian Anda dengan mudah. Salurkan sedekah subuh, infaq, dan zakat secara transparan dan amanah melalui lazisku.com.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'LAZIS Khoiro Ummah | Platform Sedekah, Infaq & Zakat Online Amanah',
+    description: 'Tunaikan kepedulian Anda dengan mudah. Salurkan sedekah subuh, infaq, dan zakat secara transparan dan amanah melalui lazisku.com.',
+    url: `${siteUrl}/`,
+    siteName: 'LAZIS Khoiro Ummah',
+    locale: 'id_ID',
+    type: 'website',
+    images: [
+      {
+        url: `${siteUrl}/images/banner-utama.png`, // 🚀 Banner utama beresolusi 1200x630 untuk pratinjau medsos
+        width: 1200,
+        height: 630,
+        alt: 'LAZIS Khoiro Ummah',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'LAZIS Khoiro Ummah | Platform Sedekah, Infaq & Zakat Online Amanah',
+    description: 'Tunaikan kepedulian Anda dengan mudah. Salurkan sedekah subuh, infaq, dan zakat secara transparan dan amanah melalui lazisku.com.',
+    images: [`${siteUrl}/images/banner-utama.png`],
+  },
+};
+
 // 🚀 JURUS SAKTI ANTI-CACHE: Memaksa Next.js untuk selalu mengambil data paling segar dari API Sanity saat halaman diakses!
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 export default function HomePage() {
   return (
