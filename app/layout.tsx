@@ -108,13 +108,14 @@ export default async function RootLayout({
   let dynamicDonations: Donation[] = [];
 
   try {
-    // 🔥 FIX QUERY: coalesce digunakan untuk mencari field alternatif jika program->title null
+    // 🔥 GROQ QUERY JUJUR: Tarik nama program dari relasi, atau tangkap slug transaksi
     const rawData = await serverClient.fetch(
       `*[_type == "donationTransaction" && status == "success"] | order(_createdAt desc)[0...10] {
         "id": _id,
         "name": donorName,
         "amount": amount,
         "program": coalesce(program->title, campaign->title, programName),
+        "slug": slug,
         _createdAt
       }`
     );
@@ -132,13 +133,20 @@ export default async function RootLayout({
           timeLabel = `${Math.floor(diffMins / 60)} jam yang lalu`;
         }
 
-        // 🔥 FIX VARIASI TEXT: Jika data program di database benar-benar kosong, ganti secara dinamis agar bervariasi
-        let finalProgram = item.program;
-        if (!finalProgram) {
-          const defaults = ["Sedekah Subuh", "Infak Ummat", "Program Yatim & Dhuafa", "Sedekah Umum"];
-          // Ambil acak berdasarkan timestamp id agar tetap konsisten per-item
-          const charCodeSum = item.id ? item.id.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0) : 0;
-          finalProgram = defaults[charCodeSum % defaults.length];
+        // 🚀 LOGIKA AMBIL PROGRAM ASLI:
+        // 1. Pakai judul dari relasi Sanity jika ada.
+        // 2. Jika relasi kosong, format dari field slug transaksi (misal: "sedekah-subuh" -> "Sedekah Subuh").
+        // 3. Fallback terakhir ke "Sedekah".
+        let displayProgram = item.program;
+
+        if (!displayProgram && item.slug) {
+          displayProgram = String(item.slug)
+            .replace(/-/g, " ")
+            .replace(/\b\w/g, (char: string) => char.toUpperCase());
+        }
+
+        if (!displayProgram) {
+          displayProgram = "Sedekah";
         }
 
         return {
@@ -149,7 +157,7 @@ export default async function RootLayout({
             currency: "IDR", 
             minimumFractionDigits: 0 
           }).format(item.amount),
-          program: finalProgram,
+          program: displayProgram,
           timeLabel: timeLabel
         };
       });
